@@ -1,7 +1,11 @@
 # SyncraSong (Typescript React) Web App
 ## This is a public repository, subject to change.
 This repository is not for distribution.
+
+
 Only the owner of this repository may distribute it.
+
+Hosted on: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
 ### Description
 This repository, SyncraSong, is a front-end web application that retrieves from the [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (private repository) and displays the data in a user-friendly manner. The application is built using React.js. <br>
