@@ -1,0 +1,58 @@
+.playlist-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+
+  cursor: grab;
+}
+
+.playlist-component:active {
+  cursor: grabbing;
+}
+
+.playlist-component:hover {
+  transform: translateY(-5px);
+}
+
+.playlist-image {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-bottom: 10px;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -o-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+
+}
+
+.playlist-info {
+  margin-top: 8px;
+}
+
+.playlist-title {
+  font-size: 1.2rem;
+  margin: 0;
+  color: #333;
+}
+
+.playlist-song-count {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.spotify-gradient {
+  background: linear-gradient(45deg, #A8E8A2, rgba(255, 255, 255, 0.75));
+}
+
+.apple-gradient {
+  background: linear-gradient(45deg, #FFD3A5, rgba(255, 255, 255, 0.75));
+}
