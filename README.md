@@ -21,6 +21,7 @@ The core APIs for fetching playlists are working.
 - [ ] (API-side) Set up transfer implementation, passing Array of IDs[], fromProvider, toProvider.
 - [ ] Dark/Light mode implementation
 - [ ] More platforms (Tidal, Youtube Music, Soundcloud, etc.)
+
 More to come...
 
 ### Completed Tasks:
