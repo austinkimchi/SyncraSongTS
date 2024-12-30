@@ -27,6 +27,10 @@ More to come...
 - [x] oAuth link access through front-end side
 - [x] Proper login handler (some bugs)
 
+### Current State
+<!-- image at ./src/assets/images/Screenshot 2024-12-29 222231.png-->
+![Current State](./src/assets/images/Screenshot%202024-12-29%20222231.png)
+
 ### Contributors
 [Austin Kim](https://github.com/austinkimchi)
 
