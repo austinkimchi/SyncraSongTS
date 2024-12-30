@@ -6,6 +6,7 @@ This repository is not for distribution.
 Only the owner of this repository may distribute it.
 
 Hosted on: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
+
 Currently hosting locally, once transfer functionality is implemented, will be hosted on server.
 
 ### Description
@@ -19,6 +20,7 @@ The core APIs for fetching playlists are working.
 - [ ] UI elements clicking functionality (to stage to transfer playlist)
 - [ ] (API-side) Set up transfer implementation, passing Array of IDs[], fromProvider, toProvider.
 - [ ] Dark/Light mode implementation
+- [ ] More platforms (Tidal, Youtube Music, Soundcloud, etc.)
 More to come...
 
 ### Completed Tasks:
