@@ -11,6 +11,10 @@ import {
   createTheme
 } from "@mui/material";
 
+import config from "../../config.json";
+
+
+
 const buttonTheme = createTheme({
   typography: {
     fontFamily: "Fort",
@@ -37,7 +41,7 @@ const Account: React.FC = () => {
 
   const fetchAccountInfo = useCallback(async () => {
     try {
-      const response = await fetch("https://syncrasongapi.austin.kim/auth/users/info",
+      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/info`,
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -67,7 +71,7 @@ const Account: React.FC = () => {
     const password = (document.getElementById("password") as HTMLInputElement).value;
 
     try {
-      const response = await fetch("https://syncrasongapi.austin.kim/auth/users/login",
+      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -102,6 +106,8 @@ const Account: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_data");
+    localStorage.removeItem("apple-playlists");
+    localStorage.removeItem("spotify-playlists");
     setToken(null);
     setAccount(null);
     setTimeout(() => window.location.reload(), 200);

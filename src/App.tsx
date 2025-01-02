@@ -47,7 +47,7 @@ const App: React.FC = () => {
       localStorage.setItem(
         `${provider}-playlists`,
         JSON.stringify({
-          items: data.items,
+          items: data.items || [],
           lastUpdated: new Date().toISOString(),
         })
       );
@@ -57,11 +57,19 @@ const App: React.FC = () => {
   }, []);
 
   const handleAddToPending = (playlist: Playlist, provider: string) => {
-    setPendingPlaylists((prev) => [...prev, playlist]);
     setPendingDisplayedOn(provider);
+    setPendingPlaylists((prev) =>
+      prev.find((p) => p.id === playlist.id) ? prev : [...prev, playlist]
+    );
   };
 
+  useEffect(() => {
+    console.log("Pending playlists:", pendingPlaylists);
+    console.log("Pending displayed on:", pendingDisplayedOn);
+  }, [pendingPlaylists]);
+
   const handleRemoveFromPending = (id: string) => {
+    console.log("Removing playlist from pending:", id);
     setPendingPlaylists((prev) =>
       prev.filter((playlist) => playlist.id !== id)
     );
@@ -79,12 +87,19 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // check if token exists
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     // Load playlists from localStorage on initial load
     // if available and not expired, if expired, fetch new playlists
     const appleStorage = localStorage.getItem("apple-playlists");
     const spotifyStorage = localStorage.getItem("spotify-playlists");
 
-    if (appleStorage) {
+    // Parse user data to check if {apple: true, spotify: true}
+    const userData = JSON.parse(localStorage.getItem("user_data") || "{}");
+
+    if (appleStorage && !userData.apple) {
       const { items, lastUpdated } = JSON.parse(appleStorage);
       if (new Date(lastUpdated) > new Date(Date.now() - 1000 * 60 * 60)) {
         setPlaylists((prev) => ({
@@ -102,7 +117,7 @@ const App: React.FC = () => {
       fetchPlaylists("apple");
     }
 
-    if (spotifyStorage) {
+    if (spotifyStorage && !userData.spotify) {
       const { items, lastUpdated } = JSON.parse(spotifyStorage);
       if (new Date(lastUpdated) > new Date(Date.now() - 1000 * 60 * 60)) {
         setPlaylists((prev) => ({
@@ -147,7 +162,7 @@ const App: React.FC = () => {
         <PlaylistSection
           provider="apple"
           playlists={
-            pendingDisplayedOn === "apple" ? pendingPlaylists : playlists.apple
+            (pendingDisplayedOn === "apple") ? [] : playlists.apple
           }
           onAddToPending={(playlist) => handleAddToPending(playlist, "apple")}
           onRefresh={() => fetchPlaylists("apple")}
@@ -166,7 +181,7 @@ const App: React.FC = () => {
           provider="spotify"
           playlists={
             pendingDisplayedOn === "spotify"
-              ? pendingPlaylists
+              ? []
               : playlists.spotify
           }
           onAddToPending={(playlist) => handleAddToPending(playlist, "spotify")}

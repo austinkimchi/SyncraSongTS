@@ -1,4 +1,5 @@
-const BASE_API_URL = "https://syncrasongapi.austin.kim/api";
+import config from "../../config.json";
+const BASE_API_URL = `https://${config.subdomain}.${config.domain_name}/api`;
 declare const MusicKit: any;
 
 interface AppleMusicConfig {

@@ -20,7 +20,7 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: status === "pending" ? "DRAG_FROM_PENDING" : "DRAG_FROM_PROVIDER",
-    item: { id, source, status },
+    item: { id, name, image, trackLength, status, source },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),

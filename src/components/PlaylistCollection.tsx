@@ -11,7 +11,7 @@ const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
 }) => {
   return (
     <div className="playlist-collection">
-      {playlists.map((playlist) => (
+      {playlists?.map((playlist) => (
         <PlaylistComponent
           key={playlist.id}
           {...playlist}
