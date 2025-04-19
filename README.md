@@ -1,10 +1,8 @@
-# SyncraSong (Typescript React) Web App
+# SyncraSong (Typescript React) Web App (On-going project)
 ## This is a public repository, subject to change.
 This repository is not for distribution.
 
-
-Only the owner of this repository may distribute it.
-
+This project is currently in development, the site is most likely down.
 Hosted on: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
 Currently hosting locally, once transfer functionality is implemented, will be hosted on server.
