@@ -5,6 +5,7 @@ import PendingPlaylist from "./components/PendingPlaylist";
 import Account from "./components/Account";
 import { Playlist } from "./types/playlist";
 import "./css/App.css";
+import Reauthorize from "./components/Reauthorize";
 
 import config from "../config.json";
 
@@ -18,10 +19,16 @@ const App: React.FC = () => {
   });
   const [pendingPlaylists, setPendingPlaylists] = useState<Playlist[]>([]);
   const [pendingDisplayedOn, setPendingDisplayedOn] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null | any>(
+  const [lastUpdated, setLastUpdated] = useState<Object | null | any>(
     {
       apple: null,
       spotify: null
+    }
+  );
+  const [status, setStatus] = useState<Object | any>(
+    {
+      apple: 200,
+      spotify: 200
     }
   );
 
@@ -34,6 +41,14 @@ const App: React.FC = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+
+      if (response.status == 500) {
+        setStatus((prev: any) => ({
+          ...prev,
+          [provider]: 500
+        }));
+      }
+
       const data = await response.json();
       setPlaylists((prev) => ({
         ...prev,
@@ -51,8 +66,16 @@ const App: React.FC = () => {
           lastUpdated: new Date().toISOString(),
         })
       );
+      setStatus((prev: any) => ({
+        ...prev,
+        [provider]: response.status
+      }));
     } catch (error) {
       console.error(`Failed to fetch playlists for ${provider}:`, error);
+      setStatus((prev: any) => ({
+        ...prev,
+        [provider]: 500
+      }));
     }
   }, []);
 
@@ -168,6 +191,7 @@ const App: React.FC = () => {
           onRefresh={() => fetchPlaylists("apple")}
           lastUpdated={lastUpdated.apple}
         >
+          {status.apple === 500 && <Reauthorize provider="apple" />}
           {pendingDisplayedOn === "apple" && (
             <PendingPlaylist
               pendingPlaylists={pendingPlaylists}
@@ -177,6 +201,7 @@ const App: React.FC = () => {
             />
           )}
         </PlaylistSection>
+
         <PlaylistSection
           provider="spotify"
           playlists={
@@ -185,9 +210,10 @@ const App: React.FC = () => {
               : playlists.spotify
           }
           onAddToPending={(playlist) => handleAddToPending(playlist, "spotify")}
-          onRefresh={() => fetchPlaylists("spotify")}
+          onRefresh={async () => await fetchPlaylists("spotify")}
           lastUpdated={lastUpdated.spotify}
         >
+          {status.spotify == 500 && <Reauthorize provider="spotify" />}
           {pendingDisplayedOn === "spotify" && (
             <PendingPlaylist
               pendingPlaylists={pendingPlaylists}
