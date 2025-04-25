@@ -55,6 +55,7 @@ async function launchAppleMusicAuthorization(): Promise<boolean> {
 
     return completeResponse.status === 200;
   } catch (error) {
+    console.log("FAILED")
     console.error("Authorization failed:", error);
     return false;
   }
