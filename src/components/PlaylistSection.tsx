@@ -41,12 +41,14 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       <div className="provider-header">
         <img
+          // Can't hard code this b/c more providers, but for now...
           src={provider === "apple" ? AppleLogo : SpotifyLogo}
           alt={`${provider} logo`}
           className="provider-logo"
         />
         <h2>
           {provider === "apple" ? "Apple Music" : "Spotify"}
+
           <Button onClick={onRefresh} variant="outlined" style={{ marginLeft: 10 }}>
             Refresh
           </Button>
