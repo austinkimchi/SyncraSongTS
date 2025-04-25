@@ -97,7 +97,8 @@ h1 {
 }
 
 .bg-black {
-  background-color: light-dark(#fff, #000);
+  /* background-color: light-dark(#fff, #000); */
+  background-color: #000;
 }
 
 .fixed {
@@ -297,4 +298,8 @@ a {
 
 .flex-basis-0 {
   flex-basis: 0;
+}
+
+.playlist-section {
+  background-color: light-dark(#1b1e1e, #1b1e1e);
 }
