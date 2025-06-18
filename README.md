@@ -13,10 +13,10 @@ This web-application is still in development and is almost ready for public usag
 The core APIs for fetching playlists are working.
 
 ### TODO:
-- [ ] Transfer functionality
+- [ ] (In-progress) Transfer functionality: Most likely going to use queuing system.
 - [ ] UI elements dragging functionality (to stage to transfer playlist)
 - [ ] UI elements clicking functionality (to stage to transfer playlist)
-- [ ] (API-side) Set up transfer implementation, passing Array of IDs[], fromProvider, toProvider.
+- [ ] (Private API side) Set up transfer implementation, passing Array of IDs[], fromProvider, toProvider.
 - [ ] Dark/Light mode implementation
 - [ ] More platforms (Tidal, Youtube Music, Soundcloud, etc.)
 
@@ -32,7 +32,12 @@ More to come...
 <!-- image at ./src/assets/images/Screenshot 2024-12-29 222231.png-->
 ![Current State](./src/assets/images/Screenshot%202024-12-29%20222231.png)
 
-### Contributors
+>[!Tip]
+> Users can drag playlists across the platform seemlessly. <br/>
+> The yellow box is the staging area before they confirm to transfer.
+![Current State](./src/assets/images/SyncraSong2.png)
+
+### Contributor(s)
 [Austin Kim](https://github.com/austinkimchi)
 
 ### License
