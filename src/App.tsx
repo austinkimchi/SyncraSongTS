@@ -35,7 +35,7 @@ const App: React.FC = () => {
   const fetchPlaylists = useCallback(async (provider: "apple" | "spotify") => {
     try {
       const response = await fetch(
-        `https://${config.subdomain}.${config.domain_name}/api/getPlaylist/${provider}`,
+        `https://${config.subdomain}.${config.domain_name}/api/getPlaylists/${provider}`,
         {
           method: "GET",
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -100,6 +100,32 @@ const App: React.FC = () => {
 
   const handleCommit = () => {
     console.log("Committing playlists:", pendingPlaylists);
+
+    // Send a post request to the server with {pendingPlaylists, pendingDisplayedOn}
+    fetch(
+      `https://${config.subdomain}.${config.domain_name}/handler/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          playlists: pendingPlaylists,
+          provider: pendingDisplayedOn,
+        }),
+      }
+    ).then((response) => {
+      if (response.status === 200) {
+        console.log("Playlists committed successfully");
+      } else {
+        console.error("Failed to commit playlists");
+      }
+    })
+      .catch((error) => {
+        console.error("Error committing playlists:", error);
+      });
+
     setPendingPlaylists([]);
     setPendingDisplayedOn(null);
   };
