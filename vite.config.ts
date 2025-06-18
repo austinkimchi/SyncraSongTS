@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 80,
+    allowedHosts: ["syncrasong.austin.kim"]
   },
   optimizeDeps: {
     exclude: ["node_modules/.cache"],
