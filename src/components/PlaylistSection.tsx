@@ -9,6 +9,9 @@ import AppleLogo from "../assets/provider/applemusic.svg";
 import SpotifyLogo from "../assets/provider/spotify.png";
 import "../css/PlaylistSection.css";
 
+// Get status of login
+const loggedIn = localStorage.getItem("token") ? true : false;
+
 interface PlaylistSectionProps {
   provider: string;
   playlists: Playlist[];
@@ -48,10 +51,15 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         />
         <h2>
           {provider === "apple" ? "Apple Music" : "Spotify"}
+          
+          {loggedIn ?
+            <Button onClick={onRefresh} variant="outlined" style={{ marginLeft: 10 }}>
+              Refresh
+            </Button>
+            :
+            <></>
+          }
 
-          <Button onClick={onRefresh} variant="outlined" style={{ marginLeft: 10 }}>
-            Refresh
-          </Button>
         </h2>
         {lastUpdated && <p>Last Refreshed: {new Date(lastUpdated).toLocaleString()}</p>}
       </div>

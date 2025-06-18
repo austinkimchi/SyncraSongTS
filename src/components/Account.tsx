@@ -66,16 +66,27 @@ const Account: React.FC = () => {
     if (token) fetchAccountInfo();
   }, [token, fetchAccountInfo]);
 
+  const getSHA256Hash = async (input : string) => {
+    const textAsBuffer = new TextEncoder().encode(input);
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", textAsBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray
+      .map((item) => item.toString(16).padStart(2, "0"))
+      .join("");
+    return hash;
+  };
+
   const handleLoginSubmit = async () => {
     const userID = (document.getElementById("userID") as HTMLInputElement).value;
     const password = (document.getElementById("password") as HTMLInputElement).value;
+    const hashed_password = await getSHA256Hash(password);
 
     try {
       const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userID, password }),
+          body: JSON.stringify({ userID, hashed_password }),
           mode: "cors",
         }
       );
