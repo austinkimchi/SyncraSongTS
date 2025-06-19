@@ -1,27 +1,26 @@
 import React from "react";
-import { Button } from "react-bootstrap";
+// import { Button } from "react-bootstrap";
+import Button from '@mui/material/Button';
 import PlaylistCollection from "./PlaylistCollection";
 import { Playlist } from "../types/playlist";
 import { useDrop } from "react-dnd";
-
-// Asset Imports
 import AppleLogo from "../assets/provider/applemusic.svg";
 import SpotifyLogo from "../assets/provider/spotify.png";
 import "../css/PlaylistSection.css";
 
-// Get status of login
-const loggedIn = localStorage.getItem("token") ? true : false;
+const loggedIn = !!localStorage.getItem("token");
 
-interface PlaylistSectionProps {
-  provider: string;
+interface Props {
+  provider: "apple" | "spotify";          // ← stricter
   playlists: Playlist[];
   lastUpdated?: string | null;
   onRefresh: () => void;
-  onAddToPending: (playlist: Playlist) => void;
+  /** playlist + destination */
+  onAddToPending: (p: Playlist, destination: "apple" | "spotify") => void;
   children?: React.ReactNode;
 }
 
-const PlaylistSection: React.FC<PlaylistSectionProps> = ({
+const PlaylistSection: React.FC<Props> = ({
   provider,
   playlists,
   lastUpdated,
@@ -29,46 +28,50 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   onAddToPending,
   children,
 }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
+  /* ■ drag-and-drop only if the card comes from the *other* service */
+  const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
-    drop: (item: Playlist) => {
-      onAddToPending(item);
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
+    canDrop: (pl) => pl.source !== provider,
+    drop: (pl) => onAddToPending(pl, provider),
+    collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
   }));
 
-  return (
-    <div ref={drop} className={`playlist-section ${isOver ? "over" : ""}`}>
+  /* helper: opposite provider for “click-to-queue” */
+  const dest = provider === "apple" ? "spotify" : "apple";
 
-      <div className="provider-header">
-        <img
-          // Can't hard code this b/c more providers, but for now...
-          src={provider === "apple" ? AppleLogo : SpotifyLogo}
-          alt={`${provider} logo`}
-          className="provider-logo"
-        />
-        <h2>
-          {provider === "apple" ? "Apple Music" : "Spotify"}
-          
-          {loggedIn ?
-            <Button onClick={onRefresh} variant="outlined" style={{ marginLeft: 10 }}>
+  return (
+    <div ref={drop} style={{ padding: 12 }} className={`playlist-section ${isOver && canDrop ? "over" : ""}`}>
+      <header className="provider-header">
+        <img src={provider === "apple" ? AppleLogo : SpotifyLogo}
+          alt={`${provider} logo`} className="provider-logo" />
+        <h2 className="no-margin">{provider === "apple" ? "Apple Music" : "Spotify"}</h2>
+
+        <div className="justify-center flex flex-column margin-left-auto">
+          {lastUpdated && (
+            <small className="align-center white left-align" style={{ marginLeft: "auto" }}>
+              Last updated: {""} <br />
+              {new Date(lastUpdated).toLocaleString()}
+            </small>
+          )}
+
+
+          {loggedIn && (
+            <Button variant="outlined" size="small" fullWidth={false} onClick={onRefresh}>
               Refresh
             </Button>
-            :
-            <></>
-          }
+          )}
+        </div>
 
-        </h2>
-        {lastUpdated && <p>Last Refreshed: {new Date(lastUpdated).toLocaleString()}</p>}
-      </div>
+      </header>
 
       <PlaylistCollection
         playlists={playlists}
         provider={provider}
-        status="provider"
+        status="pending"
+        /* click inside this column should add to *other* column */
+        onAdd={(pl) => onAddToPending(pl, dest)}
       />
+
       {children}
     </div>
   );
