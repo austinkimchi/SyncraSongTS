@@ -40,6 +40,15 @@ const App: React.FC = () => {
     }
   );
 
+  const defaultTheme = (localStorage.getItem("theme") as "light" | "dark") ||
+    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const [theme, setTheme] = useState<"light" | "dark">(defaultTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   useEffect(() => {
     if (status.apple === 200) {
       fetchPlaylists("apple");
@@ -215,23 +224,18 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <nav className="bg-black top-0 flex pt-24 items-center padding-1 justifyc-space padding-lr-2">
-        <div className="flex left-flex-comp"></div>
-        <div className="container flex flex-row">
-          <div className="flex flex-row items-center" id="hamburger">
-            <a href="#" className="h-full">
-              <img
-                src={DarkLogo}
-                alt="logo"
-                id="logo"
-                className="w-32 h-i padding-0"
-              />
-            </a>
-            {/* <a href="#">Dashboard</a> */}
-          </div>
-        </div>
-        <div className="flex right-flex-comp">
-          <Account />
+      <nav className="navbar">
+        <div style={{ flex: 1 }}></div>
+        <a href="#" style={{ flex: 1, textAlign: "center" }}>
+          <img
+            src={DarkLogo}
+            alt="logo"
+            id="logo"
+            className="w-32 h-i padding-0"
+          />
+        </a>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+          <Account theme={theme} toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")} />
         </div>
       </nav>
 

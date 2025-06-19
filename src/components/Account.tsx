@@ -8,8 +8,13 @@ import {
   Button,
   TextField,
   ThemeProvider,
-  createTheme
+  createTheme,
+  IconButton,
+  Menu,
+  MenuItem
 } from "@mui/material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ThemeToggle from "./ThemeToggle";
 
 import config from "../../config.json";
 
@@ -32,11 +37,17 @@ const buttonTheme = createTheme({
   }
 });
 
-const Account: React.FC = () => {
+interface AccountProps {
+  theme: "light" | "dark";
+  toggleTheme: () => void;
+}
+
+const Account: React.FC<AccountProps> = ({ theme, toggleTheme }) => {
   const [account, setAccount] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const fetchAccountInfo = useCallback(async () => {
     try {
@@ -122,6 +133,14 @@ const Account: React.FC = () => {
     setTimeout(() => window.location.reload(), 200);
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
     <div>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
@@ -163,14 +182,21 @@ const Account: React.FC = () => {
 
       {account ? (
         <ThemeProvider theme={buttonTheme}>
-          {/* TODO: Implement the account */}
-          <Button onClick={() => console.log(account)}>Account</Button>
-          <Button onClick={handleLogout}>Logout</Button>
+          <IconButton onClick={handleMenuOpen} color="inherit">
+            <AccountCircleIcon />
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+            <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
+            <MenuItem>
+              <ThemeToggle theme={theme} toggle={toggleTheme} />
+            </MenuItem>
+            <MenuItem onClick={() => { handleMenuClose(); handleLogout(); }}>Logout</MenuItem>
+          </Menu>
         </ThemeProvider>
       ) : (
-        <Button onClick={handleLogin} className="header">
-          Login
-        </Button>
+        <IconButton onClick={handleLogin} color="inherit">
+          <AccountCircleIcon />
+        </IconButton>
       )}
     </div>
   );
