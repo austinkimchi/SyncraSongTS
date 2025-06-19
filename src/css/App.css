@@ -1,24 +1,4 @@
-/* :root {
-  --bg: #f6f6f7;
-  --cardBG: #fff;
-  --text: #141414;
-  --cardShadow: rgba(0, 0, 0, .07);
-} */
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1111;
-    --cardBG: #1b1e1e;
-    --text: #e2e2e2;
-    --cardShadow: rgba(0, 0, 0, .4);
-  }
-} */
-
-/* body,
-html {
-  background: var(--bg);
-  color: var(--text);
-} */
+/* utilities */
 
 body,
 html {
@@ -40,10 +20,7 @@ html {
 
   display: flex;
   flex-direction: column;
-
-  background-color: light-dark(#1b1e1e, #1b1e1e);
-
-  color-scheme: light dark;
+  background-color: var(--bg-color);
 }
 
 h1 {
@@ -115,8 +92,20 @@ h1 {
 }
 
 .bg-black {
-  /* background-color: light-dark(#fff, #000); */
-  background-color: #000;
+  background-color: var(--card-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-bar {
+  background-color: var(--card-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
 }
 
 .fixed {
@@ -159,7 +148,7 @@ a {
   justify-self: center;
   vertical-align: top;
 
-  color: light-dark(#91a4a4, #91a4a4);
+  color: var(--accent-color);
 }
 
 .h-i {
@@ -322,7 +311,9 @@ a {
 }
 
 .playlist-section {
-  background-color: light-dark(#1b1e1e, #1b1e1e);
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 1rem;
 }
 
 .white {
@@ -339,4 +330,13 @@ a {
 
 .margin-left-auto {
   margin-left: auto;
+}
+
+.theme-toggle {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--accent-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
 }
