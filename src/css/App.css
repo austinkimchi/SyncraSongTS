@@ -28,9 +28,6 @@ html {
 
 #root {
   height: 100vh;
-
-  width: -moz-available;
-  width: -webkit-fill-available;
   width: 100%;
   max-width: 100%;
 
@@ -41,9 +38,8 @@ html {
   display: flex;
   flex-direction: column;
 
-  background-color: light-dark(#1b1e1e, #1b1e1e);
-
-  color-scheme: light dark;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 h1 {

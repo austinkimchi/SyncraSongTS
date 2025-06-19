@@ -3,6 +3,7 @@ import DarkLogo from "./assets/logo/logo-dark.svg";
 import PlaylistSection from "./components/PlaylistSection";
 import PendingPlaylist from "./components/PendingPlaylist";
 import Account from "./components/Account";
+import ThemeToggle from "./components/ThemeToggle";
 import { Playlist } from "./types/playlist";
 import "./css/App.css";
 import Reauthorize from "./components/Reauthorize";
@@ -39,6 +40,15 @@ const App: React.FC = () => {
       spotify: 200
     }
   );
+
+  const defaultTheme = (localStorage.getItem("theme") as "light" | "dark") ||
+    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const [theme, setTheme] = useState<"light" | "dark">(defaultTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     if (status.apple === 200) {
@@ -230,7 +240,8 @@ const App: React.FC = () => {
             {/* <a href="#">Dashboard</a> */}
           </div>
         </div>
-        <div className="flex right-flex-comp">
+        <div className="flex right-flex-comp" style={{ gap: "1rem" }}>
+          <ThemeToggle theme={theme} toggle={() => setTheme(prev => prev === "light" ? "dark" : "light")} />
           <Account />
         </div>
       </nav>
