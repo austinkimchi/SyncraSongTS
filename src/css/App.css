@@ -1,3 +1,25 @@
+/* :root {
+  --bg: #f6f6f7;
+  --cardBG: #fff;
+  --text: #141414;
+  --cardShadow: rgba(0, 0, 0, .07);
+} */
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1111;
+    --cardBG: #1b1e1e;
+    --text: #e2e2e2;
+    --cardShadow: rgba(0, 0, 0, .4);
+  }
+} */
+
+/* body,
+html {
+  background: var(--bg);
+  color: var(--text);
+} */
+
 body,
 html {
   width: 100%;
@@ -56,10 +78,6 @@ h1 {
 
 .right {
   right: 0;
-}
-
-.read-the-docs {
-  color: #888;
 }
 
 .wide {
@@ -121,7 +139,8 @@ h1 {
   flex-direction: row;
 }
 
-.self-center {
+.self-center,
+.align-center {
   align-self: center;
 }
 
@@ -290,6 +309,8 @@ a {
 
 .playlist-component {
   white-space: nowrap;
+  /* background: var(--cardBG);
+  box-shadow: 0 2px 4px var(--cardShadow); */
 }
 
 .flex-grow-1 {
@@ -302,4 +323,20 @@ a {
 
 .playlist-section {
   background-color: light-dark(#1b1e1e, #1b1e1e);
+}
+
+.white {
+  color: #fff;
+}
+
+.left-align {
+  text-align: left;
+}
+
+.flex-right {
+  justify-content: flex-end;
+}
+
+.margin-left-auto {
+  margin-left: auto;
 }
