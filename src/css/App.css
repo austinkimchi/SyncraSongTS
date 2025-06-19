@@ -115,8 +115,8 @@ h1 {
 }
 
 .bg-black {
-  /* background-color: light-dark(#fff, #000); */
-  background-color: #000;
+  background-color: var(--header-bg);
+  color: var(--text);
 }
 
 .fixed {
@@ -322,7 +322,9 @@ a {
 }
 
 .playlist-section {
-  background-color: light-dark(#1b1e1e, #1b1e1e);
+  background-color: var(--card-bg);
+  padding: 1em;
+  border-radius: 8px;
 }
 
 .white {
@@ -339,4 +341,10 @@ a {
 
 .margin-left-auto {
   margin-left: auto;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 1em;
 }

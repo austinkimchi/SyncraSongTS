@@ -3,6 +3,7 @@ import DarkLogo from "./assets/logo/logo-dark.svg";
 import PlaylistSection from "./components/PlaylistSection";
 import PendingPlaylist from "./components/PendingPlaylist";
 import Account from "./components/Account";
+import ThemeToggle from "./components/ThemeToggle";
 import { Playlist } from "./types/playlist";
 import "./css/App.css";
 import Reauthorize from "./components/Reauthorize";
@@ -231,6 +232,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex right-flex-comp">
+          <ThemeToggle />
           <Account />
         </div>
       </nav>

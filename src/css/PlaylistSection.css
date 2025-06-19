@@ -2,8 +2,10 @@
     border: 2px solid transparent;
     transition: border 0.2s;
     flex-grow: 1;
-    
     width: 50%;
+    padding: 1em;
+    border-radius: 8px;
+    background-color: var(--card-bg);
 }
 
 .playlist-section-over {
@@ -50,4 +52,10 @@
 
 .justify-center {
     justify-content: center;
+}
+
+@media (max-width:640px) {
+  .playlist-section {
+    width: 100%;
+  }
 }
