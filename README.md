@@ -1,23 +1,21 @@
-# SyncraSong (Typescript React) Web App (On-going project)
-## This is a public repository, subject to change.
-This repository is not for distribution.
+# SyncraSong Web App (Work In-progress)
+### This is a public repository, subject to change.
+**This repository is not for distribution.**
 
-This project is currently in development, the site is most likely down.
+This project is currently in development.
 Hosted on: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
-Currently hosting locally, once transfer functionality is implemented, will be hosted on server.
+Everything is hosted on a local server for now.
 
 ### Description
-This repository, SyncraSong, is a front-end web application that retrieves from the [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (private repository) and displays the data in a user-friendly manner. The application is built using React.js. <br>
-This web-application is still in development and is almost ready for public usage.
-The core APIs for fetching playlists are working.
+SyncraSongTS is a front-end web application, utilizing the [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (private repository, also made by me). This full-stack application utilizes the MERN stack, utilizing MongoDB (self-hosted), Express.JS, React, and Node.js. <br>
+Utilized Codex for slight UI design.
 
 ### TODO:
-- [ ] (In-progress) Transfer functionality: Most likely going to use queuing system.
-- [ ] UI elements dragging functionality (to stage to transfer playlist)
-- [ ] UI elements clicking functionality (to stage to transfer playlist)
-- [ ] (Private API side) Set up transfer implementation, passing Array of IDs[], fromProvider, toProvider.
-- [ ] Dark/Light mode implementation
+- [ ] Transfer functionality: **Apple Music** to **Spotify**
+- [ ] Pane switching: Select platform on either left and right pane instead of hardfixing it
+- [ ] Add user settings
+- [ ] User creation feature (Yes, I know I added the login without a way to create users for now)
 - [ ] More platforms (Tidal, Youtube Music, Soundcloud, etc.)
 
 More to come...
@@ -26,16 +24,26 @@ More to come...
 - [x] Implement playlist fetching on service linked account (Spotify/Apple Music)
 - [x] Access to RESTAPI for basic functions: get userID, session token
 - [x] oAuth link access through front-end side
-- [x] Proper login handler (some bugs)
+- [x] Transfer functionality: **Spotify** to **Apple Music**
+- [x] Transfer functionality: Simple Queuing System
+- [x] Dark and Light mode implementation
+- [x] UI elements dragging functionality (might remove soon, unnecessary)
+- [x] UI elements clicking functionality (stage and unstage pending playlist)
+
 
 ### Current State
 <!-- image at ./src/assets/images/Screenshot 2024-12-29 222231.png-->
 ![Current State](./src/assets/images/SyncraSong_home.png)
 
 >[!Tip]
-> Users can drag playlists across the platform seemlessly. <br/>
+> Users can click or drag playlists across the platform seemlessly. <br/>
 > The yellow box is the staging area before they confirm to transfer.
 ![Current State](./src/assets/images/SyncraSong_pending.png)
+
+>[!Note]
+> If songs are cached: A playlist of 1000 songs takes 9 seconds on average to transfer. <br/>
+> If songs are uncached: A playlist of 1000 songs will take 5 minutes on average to transfer. <br/>
+> Cached songs are stored in a medium, where other users have already transfer it before. If the songs that are mapped are incorrect, please report it at syncrasong@austin.kim.
 
 ### Contributor(s)
 [Austin Kim](https://github.com/austinkimchi)
