@@ -30,12 +30,12 @@ More to come...
 
 ### Current State
 <!-- image at ./src/assets/images/Screenshot 2024-12-29 222231.png-->
-![Current State](./src/assets/images/Screenshot%202024-12-29%20222231.png)
+![Current State](./src/assets/images/SyncraSong_home.png)
 
 >[!Tip]
 > Users can drag playlists across the platform seemlessly. <br/>
 > The yellow box is the staging area before they confirm to transfer.
-![Current State](./src/assets/images/SyncraSong2.png)
+![Current State](./src/assets/images/SyncraSong_pending.png)
 
 ### Contributor(s)
 [Austin Kim](https://github.com/austinkimchi)
