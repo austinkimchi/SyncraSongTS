@@ -1,3 +1,6 @@
+const statusValues = ["queued", "processing", "success", "error"] as const;
+type PlaylistStatus = typeof statusValues[number];
+
 export interface Playlist {
   id: string;
   name: string;
@@ -7,12 +10,12 @@ export interface Playlist {
   isPublic: boolean;
   href: string;
   source: string;
-  status: "provider" | "pending";
+  status: PlaylistStatus;
 }
 
 export interface PlaylistCollectionProps {
   playlists: Playlist[];
   provider?: string;
-  status: "provider" | "pending";
+  status?: PlaylistStatus;
   onRemove?: (id: string) => void;
 }
