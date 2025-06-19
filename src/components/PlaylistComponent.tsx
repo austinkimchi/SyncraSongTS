@@ -5,6 +5,7 @@ import { useDrag, DragSourceMonitor } from "react-dnd";
 import "../css/PlaylistComponent.css";
 
 interface PlaylistComponentProps extends Playlist {
+  onAdd?: (pl: Playlist) => void;
   onRemove?: (id: string) => void;
 }
 
@@ -14,31 +15,44 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
   image,
   trackLength,
   description,
-  status,
+  isPublic,
+  href,
   source,
+  status,
+  onAdd,
   onRemove,
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: status === "pending" ? "DRAG_FROM_PENDING" : "DRAG_FROM_PROVIDER",
-    item: { id, name, image, trackLength, status, source },
+    item: { id, name, image, trackLength, status, source, description },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
   }));
 
   const handleClick = () => {
-    if (status === "pending" && onRemove) {
-      onRemove(id);
-    }
+    if (status === "pending" && onRemove) onRemove(id);
+    if (status !== "pending" && onAdd) onAdd({
+      id,
+      name,
+      image,
+      trackLength,
+      description,
+      href,
+      isPublic,
+      source,
+      status,
+    });
   };
 
   return (
     <div
       ref={drag}
-      className={`playlist-component ${source == "spotify" ? "spotify-gradient" : "apple-gradient"}`}
+      className={`playlist-component ${source === "spotify" ? "spotify-gradient" : "apple-gradient"
+        }`}
       style={{
         opacity: isDragging ? 0.5 : 1,
-        cursor: status === "pending" ? "pointer" : "default",
+        cursor: "pointer",
       }}
       onClick={handleClick}
     >
@@ -50,8 +64,6 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
       <div className="playlist-info">
         <h3 className="playlist-title">{name}</h3>
         <p className="playlist-song-count">{trackLength} songs</p>
-        {/* Could add in the future, formatting is rough. */}
-        {/* {description && <p>{description}</p>} */}
       </div>
     </div>
   );
