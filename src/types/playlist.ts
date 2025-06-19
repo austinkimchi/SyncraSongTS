@@ -1,4 +1,6 @@
-const statusValues = ["queued", "processing", "success", "error"] as const;
+import { Providers } from "./provider";
+
+const statusValues = ["pending", "processing", "success", "error"] as const;
 type PlaylistStatus = typeof statusValues[number];
 
 export interface Playlist {
@@ -15,7 +17,8 @@ export interface Playlist {
 
 export interface PlaylistCollectionProps {
   playlists: Playlist[];
-  provider?: string;
+  provider?: Providers;
   status?: PlaylistStatus;
+  onAdd?: (playlist: Playlist) => void;
   onRemove?: (id: string) => void;
 }
