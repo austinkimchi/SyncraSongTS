@@ -4,15 +4,23 @@ import { launchAppleMusicAuthorization, launchSpotifyAuthorization } from "../ha
 
 interface ReauthorizeProps {
     provider: string;
+    setStatus: React.Dispatch<React.SetStateAction<{ apple: number; spotify: number }>>;
 }
 
-const Reauthorize: React.FC<ReauthorizeProps> = ({ provider }) => {
+const Reauthorize: React.FC<ReauthorizeProps> = ({ provider, setStatus }) => {
     const handleReauthorize = async () => {
+        let success = false;
+        
         if (provider === "apple") {
-            await launchAppleMusicAuthorization();
+            success = (await launchAppleMusicAuthorization());
         } else {
-            await launchSpotifyAuthorization();
+            success = (await launchSpotifyAuthorization());
         }
+
+        setStatus(prev => ({
+            ...prev,
+            [provider]: success ? 200 : 500
+        }));
     };
 
     return (
