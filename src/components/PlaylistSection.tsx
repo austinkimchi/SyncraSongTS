@@ -48,7 +48,7 @@ const PlaylistSection: React.FC<Props> = ({
 
         <div className="justify-center flex flex-column margin-left-auto">
           {lastUpdated && (
-            <small className="align-center white left-align" style={{ marginLeft: "auto" }}>
+            <small className="align-center left-align" style={{ marginLeft: "auto" }}>
               Last updated: {""} <br />
               {new Date(lastUpdated).toLocaleString()}
             </small>
