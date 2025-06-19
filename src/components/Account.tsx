@@ -14,7 +14,6 @@ import {
 import config from "../../config.json";
 
 
-
 const buttonTheme = createTheme({
   typography: {
     fontFamily: "Fort",
@@ -66,7 +65,7 @@ const Account: React.FC = () => {
     if (token) fetchAccountInfo();
   }, [token, fetchAccountInfo]);
 
-  const getSHA256Hash = async (input : string) => {
+  const getSHA256Hash = async (input: string) => {
     const textAsBuffer = new TextEncoder().encode(input);
     const hashBuffer = await window.crypto.subtle.digest("SHA-256", textAsBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -93,10 +92,9 @@ const Account: React.FC = () => {
 
       const data = await response.json();
       if (response.ok && data.token) {
-        setToken(data.token);
         localStorage.setItem("token", data.token);
+        setToken(data.token);
         setShowDialog(false);
-        setTimeout(() => window.location.reload(), 200);
       } else {
         setErrorMessage("Failed to login: Check credentials");
       }
