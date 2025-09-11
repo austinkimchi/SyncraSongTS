@@ -7,7 +7,7 @@ import "../css/PlaylistCollection.css";
 const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
   playlists,
   provider,
-  status,
+  // status,
   onRemove,
   onAdd,
 }) => (
