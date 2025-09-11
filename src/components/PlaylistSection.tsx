@@ -1,5 +1,4 @@
 import React from "react";
-// import { Button } from "react-bootstrap";
 import Button from '@mui/material/Button';
 import PlaylistCollection from "./PlaylistCollection";
 import { Playlist } from "../types/playlist";
@@ -28,7 +27,6 @@ const PlaylistSection: React.FC<Props> = ({
   onAddToPending,
   children,
 }) => {
-  /* ■ drag-and-drop only if the card comes from the *other* service */
   const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
     canDrop: (pl) => pl.source !== provider,
