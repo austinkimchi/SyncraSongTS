@@ -1,4 +1,4 @@
-import { Button, Card, Placeholder } from "react-bootstrap";
+import { Card, Placeholder } from "react-bootstrap";
 
 export const PlaylistImage = ({ width = 150, height = 150 }) => {
   return (
