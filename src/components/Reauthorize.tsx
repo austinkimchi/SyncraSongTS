@@ -8,9 +8,9 @@ interface ReauthorizeProps {
 }
 
 const Reauthorize: React.FC<ReauthorizeProps> = ({ provider, setStatus }) => {
+    let success = false;
     const handleReauthorize = async () => {
-        let success = false;
-        
+
         if (provider === "apple") {
             success = (await launchAppleMusicAuthorization());
         } else {
@@ -22,13 +22,13 @@ const Reauthorize: React.FC<ReauthorizeProps> = ({ provider, setStatus }) => {
             [provider]: success ? 200 : 500
         }));
     };
-
-    return (
-        <div className="reauthorize">
-            <h2>Reauthorize {provider === "apple" ? "Apple Music" : "Spotify"}</h2>
-            <Button onClick={handleReauthorize}>Reauthorize</Button>
-        </div>
-    );
+    if (success)
+        return (
+            <div className="reauthorize">
+                <h2>Reauthorize {provider === "apple" ? "Apple Music" : "Spotify"}</h2>
+                <Button onClick={handleReauthorize}>Reauthorize</Button>
+            </div>
+        );
 };
 
 
