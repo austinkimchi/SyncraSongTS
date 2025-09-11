@@ -40,9 +40,10 @@ const buttonTheme = createTheme({
 interface AccountProps {
   theme: "light" | "dark";
   toggleTheme: () => void;
+  setStatus: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }
 
-const Account: React.FC<AccountProps> = ({ theme, toggleTheme }) => {
+const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
   const [account, setAccount] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -62,8 +63,12 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme }) => {
 
       if (response.ok && data) {
         setAccount(data);
-        console.log(data);
         localStorage.setItem("user_data", JSON.stringify(data));
+        setStatus((prevStatus) => ({
+          ...prevStatus,
+          apple: data.apple_status || 200,
+          spotify: data.spotify_status || 200,
+        }));
       } else {
         handleLogout();
       }
@@ -123,6 +128,40 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme }) => {
     setShowDialog(true);
   };
 
+  const handleCreateSubmit = async () => {
+    const userID = (document.getElementById("userID") as HTMLInputElement).value;
+    const password = (document.getElementById("password") as HTMLInputElement).value;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&-])[A-Za-z\d@$!%*?&-]{8,}$/;
+
+    if (!regex.test(password)) {
+      setErrorMessage("Password must be at least 8 characters long, contain uppercase and lowercase letters, a number, and a special character.");
+      return;
+    }
+
+    const hashed_password = await getSHA256Hash(password);
+
+    try {
+      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userID, hashed_password }),
+          mode: "cors",
+        }
+      );
+
+      if (response.ok) {
+        setErrorMessage("");
+        handleLoginSubmit();
+      } else {
+        const data = await response.json();
+        setErrorMessage(data.error || "Failed to create account");
+      }
+    } catch (error: any) {
+      setErrorMessage("Failed to create account: " + error.message);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_data");
@@ -173,6 +212,9 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme }) => {
         <DialogActions>
           <Button onClick={() => setShowDialog(false)} color="primary">
             Cancel
+          </Button>
+          <Button onClick={handleCreateSubmit} color="primary">
+            Create
           </Button>
           <Button onClick={handleLoginSubmit} color="primary">
             Login
