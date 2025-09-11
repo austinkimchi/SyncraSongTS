@@ -235,7 +235,7 @@ const App: React.FC = () => {
           />
         </a>
         <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-          <Account theme={theme} toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")} />
+          <Account setStatus={setStatus} theme={theme} toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")} />
         </div>
       </nav>
 
