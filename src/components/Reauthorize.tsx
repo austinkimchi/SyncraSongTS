@@ -22,7 +22,7 @@ const Reauthorize: React.FC<ReauthorizeProps> = ({ provider, setStatus }) => {
             [provider]: success ? 200 : 500
         }));
     };
-    if (success)
+    if (!success)
         return (
             <div className="reauthorize">
                 <h2>Reauthorize {provider === "apple" ? "Apple Music" : "Spotify"}</h2>

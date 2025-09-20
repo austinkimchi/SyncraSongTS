@@ -9,6 +9,8 @@ import Reauthorize from "./components/Reauthorize";
 
 import config from "../config.json";
 import { Providers } from "./types/provider";
+import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
+import { Switch } from "@mui/material";
 
 const App: React.FC = () => {
   const [playlists, setPlaylists] = useState<{
@@ -40,6 +42,7 @@ const App: React.FC = () => {
     }
   );
 
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => !localStorage.getItem("token"));
   const defaultTheme = (localStorage.getItem("theme") as "light" | "dark") ||
     (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   const [theme, setTheme] = useState<"light" | "dark">(defaultTheme);
@@ -49,14 +52,14 @@ const App: React.FC = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  useEffect(() => {
-    if (status.apple === 200) {
-      fetchPlaylists("apple");
-    }
-    if (status.spotify === 200) {
-      fetchPlaylists("spotify");
-    }
-  }, [status.apple, status.spotify]);
+  // useEffect(() => {
+  //   if (status.apple === 200) {
+  //     fetchPlaylists("apple");
+  //   }
+  //   if (status.spotify === 200) {
+  //     fetchPlaylists("spotify");
+  //   }
+  // }, [status.apple, status.spotify]);
 
   const fetchPlaylists = useCallback(async (provider: "apple" | "spotify") => {
     try {
@@ -105,6 +108,17 @@ const App: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (isDemoMode) return;
+    if (status.apple === 200) {
+      fetchPlaylists("apple");
+    }
+    if (status.spotify === 200) {
+      fetchPlaylists("spotify");
+    }
+  }, [status.apple, status.spotify, isDemoMode, fetchPlaylists]);
+
+
   const handleAddToPending = (pl: Playlist, destination: Providers) => {
     setPendingPlaylists(prev =>
       prev.some(p => p.id === pl.id)
@@ -118,6 +132,54 @@ const App: React.FC = () => {
     console.log("Pending playlists:", pendingPlaylists);
     console.log("Pending displayed on:", pendingDisplayedOn);
   }, [pendingPlaylists]);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const hasToken = !!localStorage.getItem("token");
+      setIsDemoMode(!hasToken);
+    };
+
+    window.addEventListener("auth-changed", handleAuthChange);
+    window.addEventListener("storage", handleAuthChange);
+
+    return () => {
+      window.removeEventListener("auth-changed", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isDemoMode) {
+      setPlaylists({
+        apple: DEMO_PLAYLISTS_APPLE.map((playlist) => ({ ...playlist })),
+        spotify: DEMO_PLAYLISTS_SPOTIFY.map((playlist) => ({ ...playlist })),
+      });
+      setLastUpdated({ apple: null, spotify: null });
+      setPendingPlaylists([]);
+      setPendingDisplayedOn(null);
+
+      // display a div with "Demo Mode" at the top of the screen
+      const demoDiv = document.createElement("div");
+      demoDiv.id = "demo-mode-banner";
+      if (document.getElementById("demo-mode-banner")) return;
+      demoDiv.style.position = "relative";
+      demoDiv.style.top = "0";
+      demoDiv.style.left = "0";
+      demoDiv.style.width = "100%";
+      demoDiv.style.backgroundColor = "#ffe26f8a";
+      demoDiv.style.color = "#000";
+      demoDiv.style.textAlign = "center";
+      demoDiv.style.padding = "0.5rem";
+      demoDiv.style.zIndex = "1000";
+      demoDiv.innerText = "Demo Mode: Please login to access full features.";
+      document.body.prepend(demoDiv);
+    } else {
+      const demoDiv = document.getElementById("demo-mode-banner");
+      if (demoDiv) demoDiv.remove();
+      setPlaylists({ apple: [], spotify: [] });
+      setLastUpdated({ apple: null, spotify: null });
+    }
+  }, [isDemoMode]);
 
   const handleRemoveFromPending = (id: string) => {
     console.log("Removing playlist from pending:", id);
@@ -175,7 +237,8 @@ const App: React.FC = () => {
   useEffect(() => {
     // check if token exists
     const token = localStorage.getItem("token");
-    if (!token) return;
+    // if (!token) return;
+    if (isDemoMode || !token) return;
 
     // Load playlists from localStorage on initial load
     // if available and not expired, if expired, fetch new playlists
@@ -220,7 +283,7 @@ const App: React.FC = () => {
     } else {
       fetchPlaylists("spotify");
     }
-  }, [fetchPlaylists]);
+  }, [fetchPlaylists, isDemoMode]);
 
   return (
     <div>
@@ -234,7 +297,9 @@ const App: React.FC = () => {
             className="w-32 h-i padding-0"
           />
         </a>
+
         <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+          <Switch className="btn btn-sm btn-ghost" onClick={() => setTheme(prev => prev === "light" ? "dark" : "light")}></Switch>
           <Account setStatus={setStatus} theme={theme} toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")} />
         </div>
       </nav>

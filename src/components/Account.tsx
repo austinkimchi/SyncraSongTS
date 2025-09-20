@@ -110,6 +110,7 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
       if (response.ok && data.token) {
         localStorage.setItem("token", data.token);
         setToken(data.token);
+        window.dispatchEvent(new Event("auth-changed"));
         setShowDialog(false);
       } else {
         setErrorMessage("Failed to login: Check credentials");
@@ -169,6 +170,7 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
     localStorage.removeItem("spotify-playlists");
     setToken(null);
     setAccount(null);
+    window.dispatchEvent(new Event("auth-changed"));
     setTimeout(() => window.location.reload(), 200);
   };
 
