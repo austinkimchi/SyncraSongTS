@@ -12,63 +12,6 @@ interface AppleMusicConfig {
 
 async function launchAppleMusicAuthorization(): Promise<boolean> {
   try {
-    /*
-    // Check if user allowed SyncraSong application
-    const userData = localStorage.getItem("user_data");
-
-    if (!userData) {
-      console.error("User data not found in local storage");
-      return false;
-    }
-
-    const parsedData = JSON.parse(userData);
-    // If user did not approve SyncraSong, oAuth ask.
-    if (!parsedData.user.apple) {
-      const fetchAuthLink = await fetch(`${BASE_API_URL}/oAuth/authorize/apple`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        mode: "cors",
-      });
-
-      if (!fetchAuthLink.ok) {
-        console.error("Failed to get authorization link for Apple Music");
-        return false;
-      }
-
-      const authLink = await fetchAuthLink.json();
-      if (!authLink || !authLink.appleAuthURL) {
-        console.error("Invalid response from Apple Music authorization endpoint");
-        return false;
-      }
-
-      const popup = window.open(authLink.appleAuthURL, "_blank", "width=600,height=800");
-
-      await new Promise((resolve) => {
-        const timer = setInterval(() => {
-          if (!popup || popup.closed) {
-            clearInterval(timer);
-            setTimeout(resolve, 200);
-          }
-        }, 500);
-      });
-
-      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/info`,
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-          mode: "cors",
-        }
-      );
-      const data = await response.json();
-
-      if (response.ok && data) {
-        localStorage.setItem("user_data", JSON.stringify(data));
-      }
-    }
-
-    */
     // Get MusicUserToken
     const fetchDevToken = await fetch(`${BASE_API_URL}/apple/devToken`, {
       method: "GET",
