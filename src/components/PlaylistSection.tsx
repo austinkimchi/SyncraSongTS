@@ -54,7 +54,7 @@ const PlaylistSection: React.FC<Props> = ({
               alt={`${platform} logo`}
               className="w-[50px] aspect-square p-0" />
 
-            <h2 className="no-margin font-bold text-base lg:text-l text-nowrap">
+            <h2 className="font-bold text-base lg:text-l text-nowrap">
               {getPlatformDisplayName(platform)}
             </h2>
           </div>
@@ -83,14 +83,13 @@ const PlaylistSection: React.FC<Props> = ({
         </Menu>
 
 
-        <div className="justify-center flex flex-column ml-auto">
+        <div className="flex flex-column ml-auto">
           {lastUpdated && (
             <small className="align-center text-left ml-auto" >
               Last updated: {""} <br />
-              {new Date(lastUpdated).toLocaleString()}
+              {lastUpdated.toLocaleString()}
             </small>
           )}
-
 
           {loggedIn && (
             <Button variant="outlined" size="small" fullWidth={false} onClick={onRefresh}>
