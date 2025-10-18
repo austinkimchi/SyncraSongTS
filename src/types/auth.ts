@@ -1,10 +1,11 @@
-export interface User {
-  id: string;
-  username: string;
-  token: string;
-}
+import Platform from "./platform";
 
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface Session {
+  userId: string;
+  displayName?: string;
+  providers: Platform[];
+}
+export interface AuthState {
+  status: 'authenticated' | 'unauthenticated';
+  session?: Session;
 }
