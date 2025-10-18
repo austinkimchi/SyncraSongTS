@@ -9,7 +9,7 @@ import { Playlist } from "../types/playlist";
 import { useDrop } from "react-dnd";
 import "../css/PlaylistSection.css";
 
-import { Platform, getPlatformLogo, getPlatformDisplayName } from "../types/platform";
+import Platform, { getPlatformLogo, getPlatformDisplayName } from "../types/platform";
 import { state } from "../types/status";
 
 const loggedIn = !!localStorage.getItem("token");
@@ -34,7 +34,7 @@ const PlaylistSection: React.FC<Props> = ({
   const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
     canDrop: (pl) => pl.platform !== platform,
-    drop: (pl) => onAddToPending(pl, platform), 
+    drop: (pl) => onAddToPending(pl, platform),
     collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
   }));
 
@@ -102,10 +102,9 @@ const PlaylistSection: React.FC<Props> = ({
 
       <PlaylistCollection
         playlists={playlists}
-        provider={platform}
         status={state.PENDING}
         onAdd={(pl) => onAddToPending(pl, platform)}
-        onRemove={() => {}}
+        onRemove={() => { }}
       />
       {children}
     </div>
