@@ -1,28 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
   DialogContentText,
-  DialogActions,
-  Button,
-  TextField,
-  ThemeProvider,
-  createTheme,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  ThemeProvider,
+  createTheme,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SettingsIcon from "@mui/icons-material/Settings";
+import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
+import LoginIcon from "@mui/icons-material/Login";
 import ThemeToggle from "./ThemeToggle";
+import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
 
-import config from "../../config.json";
-
+import { APP_FULL_URL } from "../config";
 
 const buttonTheme = createTheme({
-  typography: {
-    fontFamily: "Fort",
-  },
+  typography: { fontFamily: "Fort" },
   components: {
     MuiButton: {
       styleOverrides: {
@@ -31,218 +30,183 @@ const buttonTheme = createTheme({
           fontSize: "24px",
           color: "rgb(100, 108, 255)",
           textTransform: "none",
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 });
+
+// Minimal fetch helper that always includes cookies
+async function api(path: string, init: RequestInit = {}) {
+  const res = await fetch(`${APP_FULL_URL}${path}`, {
+    credentials: "include",
+    ...init,
+  });
+  return res;
+}
+
+interface AccountInfo {
+  userId: string;
+  displayName?: string;
+  apple_status?: number;
+  spotify_status?: number;
+  soundcloud_status?: number;
+  providers?: Platform[];
+}
 
 interface AccountProps {
   theme: "light" | "dark";
   toggleTheme: () => void;
-  setStatus: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  setStatus: (obj: { apple: number; spotify: number }) => void;
 }
 
 const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
-  const [account, setAccount] = useState<string | null>(null);
-  const [showDialog, setShowDialog] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [account, setAccount] = useState<AccountInfo | null>(null);
+  const [error, setError] = useState<string>("");
 
-  const fetchAccountInfo = useCallback(async () => {
-    try {
-      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/info`,
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-          mode: "cors",
-        }
-      );
-      const data = await response.json();
+  const open = Boolean(anchorEl);
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
-      if (response.ok && data) {
-        setAccount(data);
-        localStorage.setItem("user_data", JSON.stringify(data));
-        setStatus((prevStatus) => ({
-          ...prevStatus,
-          apple: data.apple_status || 200,
-          spotify: data.spotify_status || 200,
-        }));
-      } else {
-        handleLogout();
-      }
-    } catch (error) {
-      setErrorMessage("Failed to get account data. Servers may not be responding.");
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (token) fetchAccountInfo();
-  }, [token, fetchAccountInfo]);
-
-  const getSHA256Hash = async (input: string) => {
-    const textAsBuffer = new TextEncoder().encode(input);
-    const hashBuffer = await window.crypto.subtle.digest("SHA-256", textAsBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray
-      .map((item) => item.toString(16).padStart(2, "0"))
-      .join("");
-    return hash;
-  };
-
-  const handleLoginSubmit = async () => {
-    const userID = (document.getElementById("userID") as HTMLInputElement).value;
-    const password = (document.getElementById("password") as HTMLInputElement).value;
-    const hashed_password = await getSHA256Hash(password);
-
-    try {
-      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userID, hashed_password }),
-          mode: "cors",
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok && data.token) {
-        localStorage.setItem("token", data.token);
-        setToken(data.token);
-        window.dispatchEvent(new Event("auth-changed"));
-        setShowDialog(false);
-      } else {
-        setErrorMessage("Failed to login: Check credentials");
-      }
-    } catch (error: any) {
-      setErrorMessage("Failed to login: " + error.message);
-    }
-  };
-  const handleLogin = () => {
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        handleLoginSubmit();
-      }
-    });
-
-    setShowDialog(true);
-  };
-
-  const handleCreateSubmit = async () => {
-    const userID = (document.getElementById("userID") as HTMLInputElement).value;
-    const password = (document.getElementById("password") as HTMLInputElement).value;
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&-])[A-Za-z\d@$!%*?&-]{8,}$/;
-
-    if (!regex.test(password)) {
-      setErrorMessage("Password must be at least 8 characters long, contain uppercase and lowercase letters, a number, and a special character.");
+  // OAuth start: redirect to backend, which will redirect to provider
+  const startOAuth = (provider: Platform) => {
+    const redirect = getPlatformOAuthFunction(provider);
+    if (redirect) {
+      redirect()
+        .catch((e) => {
+          setError(`Failed to start ${getPlatformDisplayName(provider)} login: ${e.message}`);
+        });
       return;
     }
-
-    const hashed_password = await getSHA256Hash(password);
-
-    try {
-      const response = await fetch(`https://${config.subdomain}.${config.domain_name}/auth/users/create`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userID, hashed_password }),
-          mode: "cors",
-        }
-      );
-
-      if (response.ok) {
-        setErrorMessage("");
-        handleLoginSubmit();
-      } else {
-        const data = await response.json();
-        setErrorMessage(data.error || "Failed to create account");
-      }
-    } catch (error: any) {
-      setErrorMessage("Failed to create account: " + error.message);
-    }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const fetchSessionAndInfo = useCallback(async () => {
+    try {
+      // 1) Optional: ping session to see if we’re logged in
+      const sessRes = await api("/auth/session");
+      if (!sessRes.ok) {
+        setAccount(null);
+        return;
+      }
+
+      // 2) Get richer account info (provider statuses)
+      const infoRes = await api("/auth/users/info");
+      if (!infoRes.ok) {
+        setAccount(null);
+        return;
+      }
+      const data: AccountInfo = await infoRes.json();
+      setAccount(data);
+
+      // Keep your existing downstream expectations:
+      setStatus({
+        apple: data.apple_status ?? 0,
+        spotify: data.spotify_status ?? 0,
+      });
+      setError("");
+    } catch (e) {
+      setError("Failed to load account. Servers may not be responding.");
+      setAccount(null);
+    }
+  }, [setStatus]);
+
+  useEffect(() => {
+    fetchSessionAndInfo();
+    // Re-run when we return from an OAuth callback (URL changes) or custom event
+    const onAuthChanged = () => fetchSessionAndInfo();
+    window.addEventListener("auth-changed", onAuthChanged);
+    return () => window.removeEventListener("auth-changed", onAuthChanged);
+  }, [fetchSessionAndInfo]);
+
+  const handleLogout = async () => {
+    try {
+      await api("/auth/logout", { method: "POST" });
+    } catch { }
+    setAccount(null);
+    // Clear any old cached UI data you still keep around
     localStorage.removeItem("user_data");
     localStorage.removeItem("apple-playlists");
     localStorage.removeItem("spotify-playlists");
-    setToken(null);
-    setAccount(null);
     window.dispatchEvent(new Event("auth-changed"));
-    setTimeout(() => window.location.reload(), 200);
+    // Soft refresh to reset any protected views
+    setTimeout(() => window.location.reload(), 150);
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // Menu content when NOT logged in: show Login with <providers>
+  const UnauthedMenu = (
+    <>
+      <MenuItem>
+        <ListItemIcon><LoginIcon fontSize="small" /></ListItemIcon>
+        <ListItemText primary="Legacy Login" />
+      </MenuItem>
+      <Divider />
+      {(Object.values(Platform) as Array<(typeof Platform)[keyof typeof Platform]>).map(p => (
+        <MenuItem key={p} onClick={() => { handleMenuClose(); startOAuth(p); }}>
+          <img src={getPlatformLogo(p)} alt={getPlatformDisplayName(p)} className="w-[20px] aspect-square mr-[16px]" />
+          {getPlatformInfo(p).loginLabel}
+        </MenuItem>
+      ))}
+      {error && (
+        <>
+          <Divider />
+          <MenuItem disabled>
+            <DialogContentText style={{ color: "red" }}>{error}</DialogContentText>
+          </MenuItem>
+        </>
+      )}
+    </>
+  );
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  // Menu content when logged in: settings / theme / logout
+  const AuthedMenu = (
+    <>
+      <MenuItem disabled>
+        <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
+        <ListItemText
+          primary={account?.displayName || account?.userId || "Account"}
+          secondary={(account?.providers || []).join(", ")}
+        />
+      </MenuItem>
+      <Divider />
+      <MenuItem onClick={handleMenuClose}>
+        <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+        <ListItemText primary="Settings" />
+      </MenuItem>
+      <MenuItem onClick={handleMenuClose}>
+        <ListItemIcon><BrightnessMediumIcon fontSize="small" /></ListItemIcon>
+        <ThemeToggle theme={theme} toggle={toggleTheme} />
+      </MenuItem>
+      <Divider />
+      <MenuItem
+        onClick={() => {
+          handleMenuClose();
+          handleLogout();
+        }}
+      >
+        <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+        <ListItemText primary="Logout" />
+      </MenuItem>
+      {error && (
+        <>
+          <Divider />
+          <MenuItem disabled>
+            <DialogContentText style={{ color: "red" }}>{error}</DialogContentText>
+          </MenuItem>
+        </>
+      )}
+    </>
+  );
 
   return (
-    <div>
-      <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
-        <DialogTitle>Login</DialogTitle>
-
-        <DialogContent>
-          <DialogContentText>Please login to your account.</DialogContentText>
-          {errorMessage && (
-            <DialogContentText style={{ color: "red" }}>
-              {errorMessage}
-            </DialogContentText>
-          )}
-          <TextField
-            autoFocus
-            margin="dense"
-            id="userID"
-            label="Username"
-            type="text"
-            fullWidth
-          />
-          <TextField
-            margin="dense"
-            id="password"
-            label="Password"
-            type="password"
-            fullWidth
-          />
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setShowDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleCreateSubmit} color="primary">
-            Create
-          </Button>
-          <Button onClick={handleLoginSubmit} color="primary">
-            Login
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {account ? (
-        <ThemeProvider theme={buttonTheme}>
-          <IconButton onClick={handleMenuOpen} color="inherit">
-            <AccountCircleIcon />
-          </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
-            <MenuItem>
-              <ThemeToggle theme={theme} toggle={toggleTheme} />
-            </MenuItem>
-            <MenuItem onClick={() => { handleMenuClose(); handleLogout(); }}>Logout</MenuItem>
-          </Menu>
-        </ThemeProvider>
-      ) : (
-        <IconButton onClick={handleLogin} color="inherit">
-          <AccountCircleIcon />
-        </IconButton>
-      )}
-    </div>
+    <ThemeProvider theme={buttonTheme}>
+      <IconButton onClick={handleMenuOpen} color="inherit" aria-label="account">
+        <AccountCircleIcon />
+      </IconButton>
+      <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+        {account ? AuthedMenu : UnauthedMenu}
+      </Menu>
+    </ThemeProvider>
   );
 };
 
