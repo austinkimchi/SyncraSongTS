@@ -1,51 +1,74 @@
-# SyncraSong Web App
-### This is a public repository, subject to change.
-**This repository is not for distribution or derivations.**
+# SyncraSong Web App  
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
+[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://react.dev/)  
+[![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)  
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg)](https://www.mongodb.com/)
 
-This project is currently in development.
-Hosted on: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
+### 🪧 Notice  
+This is a **public repository** currently under active development.  
+**Not intended for redistribution or derivative use.**
 
-### Description
-SyncraSongTS is a front-end web application, utilizing the [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (**private repository** for security purposes). This full-stack application utilizes the MERN stack, utilizing MongoDB, Express.js, React, and Node.js. <be>
-Utilized OpenAI Codex for early UI re-design.
+Hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
-> [!Important]
-> You need to be an active Apple Music Subscriber to link your playlist and account to this web app.
+---
 
-### TODO:
-- [ ] Transfer queuing system/load balancing (In-progress)
-- [ ] Spotify: Fetch user library instead of only their playlists. This would increase the number of "playlists" transferable. (Blends, Liked Songs, Etc.)
-- [ ] Pane switching: Select the platform on either the left or right pane instead of hard-fixing it
-- [ ] Add user settings
-- [ ] More platforms (Tidal, Youtube Music, Soundcloud, etc.)
-- [ ] UI rebrand (once code works)
-More to come...
+## 📖 Overview  🪧
+**SyncraSongTS** is a front-end web application built using the **MERN stack** — MongoDB, Express.js, React, and Node.js.  
+It connects to the companion back-end service, [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (**private repository**) for playlist transfer and synchronization features.  
 
-### Completed Tasks:
-- [x] Implement playlist fetching for service-linked account (Aug 2024)
-- [x] Access to RESTAPI for basic functions: get userID, session token (Sep 2024)
-- [x] UI elements dragging & clicking functionality (Apr 2025)
-- [x] Fetch OAuth 2.0, served by back-end API (Apr 2025)
-- [x] Transfer functionality: **Spotify** to **Apple Music** (Jun 2025)
-- [x] Dark and Light mode implementation (Jun 2025)
-- [x] Transfer functionality: **Apple Music** to **Spotify** (Jul 2025)
-- [x] Allow any user to create an account (Jul 2025/Regressing change)
+> [!IMPORTANT]
+> You must be an active **Apple Music subscriber** to link your Apple Music account with this app.
 
-### Current State
-<!-- image at ./src/assets/images/Screenshot 2024-12-29 222231.png-->
-![Current State](./src/assets/images/SyncraSong_home.png)
+---
 
->[!Tip]
-> Users can click or drag playlists across the platform seamlessly. <br/>
-> The yellow box is the staging area before they confirm to transfer.
-![Current State](./src/assets/images/SyncraSong_pending.png)
+## 🚧 In Progress  
+- [ ] Transfer queuing system / load balancing  
+- [ ] Pane switching (selectable left/right platform panes)  
+- [ ] SoundCloud integration  
 
->[!Note]
-> If songs are cached: On average, a playlist of 100 songs takes **6 seconds** to transfer. (Either way, due to caching) <br/>
-> If songs are uncached: On average, a playlist of 100 songs will take **41 seconds** to transfer. (Spotify->Apple 29 seconds, Apple->Spotify 53 seconds) <br/>
+---
 
-### Contributor(s)
-[Austin Kim](https://github.com/austinkimchi)
+## 📝 TODO  
+- [ ] List view for playlists (in addition to grid view)
+- [ ] Spotify: Fetch full user library (Blends, Liked Songs, etc.)  
+- [ ] User settings panel  
+- [ ] UI rebrand after feature completion  
+- [ ] Add support for additional platforms (Tidal, YouTube Music, etc.)  
 
-### License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+---
+
+## ✅ Completed  
+- [x] Automatic playlist fetching for authenticated users  
+- [x] RESTful API integration with back-end  
+- [x] Drag-and-drop UI interaction  
+- [x] OAuth 2.x authentication via back-end  
+- [x] Cross-platform music transfer: **Spotify ↔ Apple Music**  
+- [x] Dark / Light theme toggle  
+
+---
+
+## 📸 Current State (as of 10/17/2025)  
+![Current State](./src/assets/images/101725_syncrasong.png)  
+
+> [!TIP]  
+> Users can **click or drag** playlists between platforms.  
+> The yellow box represents the **staging area** before confirming a transfer.  
+
+![Pending State](./src/assets/images/SyncraSong_pending.png)  
+
+> [!NOTE]  
+> **Performance Estimates:**  
+> - Cached playlists (~100 songs): ~6 seconds  
+> - Uncached playlists (~100 songs): ~41 seconds  
+>   - Spotify → Apple Music: ~29s  
+>   - Apple Music → Spotify: ~53s  
+
+---
+
+## 👤 Contributor  
+- [Austin Kim](https://github.com/austinkimchi)
+
+---
+
+## 📄 License  
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
