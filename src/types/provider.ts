@@ -1,1 +1,0 @@
-export type Providers = "apple" | "spotify";
