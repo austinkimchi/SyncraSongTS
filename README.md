@@ -17,7 +17,7 @@ Hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 It connects to the companion back-end service, [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (**private repository**) for playlist transfer and synchronization features.  
 
 > [!IMPORTANT]
-> **You must be an active Apple Music subscriber** to link your Apple Music account with this app.
+> **You must be an active Apple Music subscriber** to link your Apple Music account with this app.  
 > Spotify accounts can be either free or premium. 
 ---
 
