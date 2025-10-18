@@ -5,22 +5,16 @@ import { useDrag, DragSourceMonitor } from "react-dnd";
 import { Platform } from "../types/platform";
 import "../css/PlaylistComponent.css";
 import { state } from "../types/status";
+import { get } from "http";
 
-interface PlaylistComponentProps extends Playlist {
+interface PlaylistComponentProps {
+  playlist: Playlist;
   onAdd?: (pl: Playlist) => void;
   onRemove?: (pl: Playlist) => void;
 }
 
 const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
-  id,
-  name,
-  image,
-  trackCount,
-  description,
-  isPublic,
-  href,
-  platform,
-  status,
+  playlist: { id, name, image, trackCount, status, platform, description, isPublic, href },
   onAdd,
   onRemove,
 }) => {
@@ -35,20 +29,13 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
   const handleClick = () => {
     if (status === state.PENDING && onRemove)
       onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
-    // if (status !== state.PENDING && onAdd)
-    //   onAdd({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
   };
 
   return (
     <div
       ref={drag}
-      className={`playlist-component whitespace-nowrap ${platform === Platform.SPOTIFY ? "spotify-gradient" : "apple-gradient"}`}
-      style={{
-        opacity: isDragging ? 0.5 : 1,
-        cursor: "pointer",
-      }}
-      onClick={handleClick}
-    // onClick will show detailed view of playlist in future update
+      className={`playlist-component ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
+      onClick={handleClick} // On click will opened detailed view, future feature
     >
       <div>
         <img
@@ -58,8 +45,8 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
         />
 
 
-        <h3 className="whitespace-break-spaces text-pretty text-sm font-medium max-w-full text-black line-clamp-2">
-          {name}{'\n\n'}
+        <h3 className={`h-10 wrap-break-word text-pretty text-sm font-medium max-w-full text-black line-clamp-2`}>
+          {name}
         </h3>
       </div>
 
