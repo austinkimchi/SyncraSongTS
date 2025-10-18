@@ -1,4 +1,4 @@
-import { Platform } from "../types/platform";
+import  Platform from "../types/platform";
 import type { IPlatformClient } from "../data/clients/IPlatformClient";
 import { SpotifyClient } from "../data/clients/SpotifyClient";
 import { AppleMusicClient } from "../data/clients/AppleMusicClient";
