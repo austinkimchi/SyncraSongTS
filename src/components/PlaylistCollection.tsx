@@ -11,12 +11,12 @@ const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
   onRemove,
   onAdd,
 }) => (
-  <div className="playlist-collection">
+  <div className="playlist-collection display-grid md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
     {playlists?.map((pl) => (
       <PlaylistComponent
         key={pl.id}
         {...pl}
-        source={provider || pl.source}
+        platform={provider || pl.platform}
         onRemove={onRemove}
         onAdd={onAdd}
       />
