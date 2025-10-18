@@ -1,5 +1,6 @@
 import { Playlist } from "../types/playlist";
 import { state } from "../types/status";
+import Platform from "../types/platform";
 
 export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
   {
@@ -10,7 +11,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: 'Every Official Blanke release, all in one place. Follow me on Instagram <a href="https://www.instagram.com/blankemusic/">here</a>',
     isPublic: true,
     href: "https://open.spotify.com/playlist/5eE7bZSSRHk8tH9vnvr8PY",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -22,7 +23,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "Melodic",
     isPublic: true,
     href: "https://open.spotify.com/playlist/6wxY88TAT13R8lOrKOHcxh",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -34,7 +35,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "kinda edm type shit",
     isPublic: true,
     href: "https://open.spotify.com/playlist/0Ff7APaCffbP0OefRDeGXJ",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -46,7 +47,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "",
     isPublic: false,
     href: "https://open.spotify.com/playlist/7BqzVOIKtRpek9fnVKVqDJ",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -58,7 +59,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/5wzJ9vJ3s3fPLMb48OS6X4",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -70,7 +71,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/4kYH3PKLFqDP6BOhzDoFH1",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -82,7 +83,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "edm",
     isPublic: true,
     href: "https://open.spotify.com/playlist/4DhbwSnCJnId217ZP7I4MU",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -94,7 +95,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/21wOkIvPvBx6ODlhwejZLO",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -107,7 +108,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/3MCKUvRdc5jQ4vXh89YGkU",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -119,7 +120,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/2ZQRscCoonXgsCp6fojk92",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -131,7 +132,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "in the moment inspiration playlist",
     isPublic: false,
     href: "https://open.spotify.com/playlist/4nmxkJj6J0dmGtumQZqdWu",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -143,7 +144,7 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     description: "melodic edm 🤷‍♂️",
     isPublic: true,
     href: "https://open.spotify.com/playlist/7khYXjFxX3YnBMwntW4WHp",
-    platform: "apple",
+    platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
   }
@@ -158,7 +159,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/6nCvaIuuHBKZzezuoNEUVv",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -170,7 +171,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/0cpNXzbsKRFGOjGPFY0QcL",
-    platform: "apple",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -182,7 +183,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/76VCAgb7P7A3RgfifQ1PeV",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -194,7 +195,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/1SBQjV0gWSgNLz2wamiMc0",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -206,7 +207,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/14HRPClKvi5f07xXf5Skqo",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -218,7 +219,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/6hNhKgFf54CWukmxlihK8n",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -230,7 +231,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "to sum up everything",
     isPublic: true,
     href: "https://open.spotify.com/playlist/2XaNOXFGiyrUzUdKAv8pBH",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -242,7 +243,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/0lVL6s3j29JNvGOz3gNrb0",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -254,7 +255,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: `"everything sucks, just kidding, everythings great, no really" 1 hour hope it helps`,
     isPublic: true,
     href: "https://open.spotify.com/playlist/760HL7SP8NkIFGLg85BZER",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -266,7 +267,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: 'See also <a href="spotify:playlist:0zjKckKtsditGogegxu0m4">Intro</a>, <a href="spotify:playlist:6hcauMqRR2v7fSFtjn3bpU">Pulse</a>, <a href="spotify:playlist:2GZQDSAVadLuU84chloq9J">Edge</a>, <a href="spotify:playlist:34sCnwA7wOCUm8gLA9Gra3">♀Filter</a> or <a href="spotify:playlist:51n5T4s05MYRRXOuWThJwE">2023</a>; or the Sounds of <a href="spotify:playlist:6TySxsLwRVYqEh7LZ6fyq8">Alt Z</a>, <a href="spotify:playlist:5pzJVmW37XGUFynM2TQ0oO">Singer-Songwriter Pop</a>, <a href="spotify:playlist:7uLxM93RjHpW2dYdtjZVBa">Folk Brasileiro</a>, <a href="spotify:playlist:3vtZXD4r0laZm8MgRUUTC2">West Bengali Pop</a>, <a href="spotify:playlist:6YId5TJbwalucavwCbkZvI">Türkçe Slow Şarkılar</a>, <a href="spotify:playlist:1HGdDFrmuZ9cfLJwJ7Eb3s">Novos Talentos Brasileiros</a>, <a href="spotify:playlist:7vVJyi5ArX0m0dvPZYWLJ1">German Singer-Songwriter</a>, <a href="spotify:playlist:4tenLyP9rbOA9oI4ZA2hwB">Turkish Singer-Songwriter</a>, <a href="spotify:playlist:6u7iKVCWcYBfem5aY9SHF9">Singaporean Pop</a> or <a href="spotify:playlist:44EBmsbBkN77OkwLNVvYGe">Bangla Pop</a>; or much more at <a href="http://everynoise.com">everynoise.com</a>.',
     isPublic: true,
     href: "https://open.spotify.com/playlist/5nUyv9wyZKjdUW1rk3smTo",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -278,7 +279,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: true,
     href: "https://open.spotify.com/playlist/6mg8i6k6RPOjTDwpBTiqpl",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
@@ -290,7 +291,7 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     description: "",
     isPublic: false,
     href: "https://open.spotify.com/playlist/7fIRvjOwVvVQxXBN0upspR",
-    platform: "spotify",
+    platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
   },
