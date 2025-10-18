@@ -1,8 +1,21 @@
-# SyncraSong Web App  
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
-[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://react.dev/)  
-[![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)  
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg)](https://www.mongodb.com/)
+# SyncraSong Web App
+<div style="text-align: center;">
+  <p>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
+    </a>
+    <a href="https://react.dev/">
+      <img src="https://img.shields.io/badge/React-18.x-blue.svg" alt="React" />
+    </a>
+    <a href="https://nodejs.org/">
+      <img src="https://img.shields.io/badge/Node.js-22+-green.svg" alt="Node.js" />
+    </a>
+    <a href="https://www.mongodb.com/">
+      <img src="https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg" alt="MongoDB" />
+    </a>
+  </p>
+</div>
+
 
 ### 🪧 Notice  
 This is a **public repository** currently under active development.  
