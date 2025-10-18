@@ -3,47 +3,50 @@ import DarkLogo from "./assets/logo/logo-dark.svg";
 import PlaylistSection from "./components/PlaylistSection";
 import PendingPlaylist from "./components/PendingPlaylist";
 import Account from "./components/Account";
-import { Playlist } from "./types/playlist";
-import "./css/App.css";
 import Reauthorize from "./components/Reauthorize";
-
-import config from "../config.json";
-import { Providers } from "./types/provider";
-import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
 import { Switch } from "@mui/material";
 
+import type { Playlist } from "./types/playlist";
+import { Platform } from "./types/platform";
+import { state as plstatus } from "./types/status";
+
+import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
+import { getClient } from "./handler/getClient";
+
+import "./css/App.css";
+
+// Load API URL
+const API_BASE_DOMAIN = (import.meta as any).env?.APP_BASE_DOMAIN;
+const API_SUB_DOMAIN = (import.meta as any).env?.APP_SUB_DOMAIN;
+export const API_BASE = `https://${API_SUB_DOMAIN}.${API_BASE_DOMAIN}`;
+
+const providerKey = (p: Platform): Platform =>
+  p === Platform.APPLE_MUSIC ? Platform.APPLE_MUSIC : Platform.SPOTIFY;
+
+// App component
 const App: React.FC = () => {
-  const [playlists, setPlaylists] = useState<{
-    apple: Playlist[];
-    spotify: Playlist[];
-  }>({
+  const [playlists, setPlaylists] = useState<{ apple: Playlist[]; spotify: Playlist[] }>({
     apple: [],
     spotify: [],
   });
 
   const [pendingPlaylists, setPendingPlaylists] = useState<Playlist[]>([]);
-  const [pendingDisplayedOn, setPendingDisplayedOn] = useState<string | null>(null);
+  const [pendingDisplayedOn, setPendingDisplayedOn] = useState<Platform | null>(null);
 
-  interface LastUpdated {
-    apple: string | null;
-    spotify: string | null;
-  }
-  const [lastUpdated, setLastUpdated] = useState<LastUpdated>(
-    {
-      apple: null,
-      spotify: null
-    }
-  );
+  const [lastUpdated, setLastUpdated] = useState<{ apple: Date | null; spotify: Date | null }>({
+    apple: null,
+    spotify: null,
+  });
 
-  const [status, setStatus] = useState<Object | any>(
-    {
-      apple: 200,
-      spotify: 200
-    }
-  );
+  const [status, setStatus] = useState<{ apple: number; spotify: number }>({
+    apple: 200,
+    spotify: 200,
+  });
 
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => !localStorage.getItem("token"));
-  const defaultTheme = (localStorage.getItem("theme") as "light" | "dark") ||
+
+  const defaultTheme =
+    (localStorage.getItem("theme") as "light" | "dark") ||
     (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   const [theme, setTheme] = useState<"light" | "dark">(defaultTheme);
 
@@ -52,181 +55,81 @@ const App: React.FC = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // useEffect(() => {
-  //   if (status.apple === 200) {
-  //     fetchPlaylists("apple");
-  //   }
-  //   if (status.spotify === 200) {
-  //     fetchPlaylists("spotify");
-  //   }
-  // }, [status.apple, status.spotify]);
+  // ------ fetch playlists via IPlatformClient (no hardcoding) ------
+  const fetchPlaylists = useCallback(
+    async (platform: Platform) => {
+      const key = providerKey(platform);
+      try {
+        const token = localStorage.getItem("token") || "";
+        if (!token) throw new Error("No token");
 
-  const fetchPlaylists = useCallback(async (provider: "apple" | "spotify") => {
-    try {
-      const response = await fetch(
-        `https://${config.subdomain}.${config.domain_name}/api/getPlaylists/${provider}`,
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+        const client = getClient(platform, token);
+        const { items } = await client.getUserPlaylists({ limit: 50 });
 
-      if (response.status == 500) {
-        setStatus((prev: any) => ({
-          ...prev,
-          [provider]: 500
-        }));
+        setPlaylists((prev) => ({ ...prev, [key]: items }));
+        setLastUpdated((prev) => ({ ...prev, [key]: new Date() }));
+        localStorage.setItem(
+          `${key}-playlists`,
+          JSON.stringify({ items, lastUpdated: new Date().toISOString() })
+        );
+        setStatus((prev) => ({ ...prev, [key]: 200 }));
+      } catch (err: any) {
+        console.error(`Failed to fetch playlists for ${key}:`, err);
+        // heuristic: treat missing token/401/any network issue as 401/500 bucket
+        const code = String(err?.message || "").includes("401") ? 401 : 500;
+        setStatus((prev) => ({ ...prev, [key]: code }));
       }
+    },
+    []
+  );
 
-      const data = await response.json();
-      setPlaylists((prev) => ({
-        ...prev,
-        [provider]: data.items,
-      }));
-
-      setLastUpdated((prev: LastUpdated) => ({
-        ...prev,
-        [provider]: new Date(),
-      }));
-      localStorage.setItem(
-        `${provider}-playlists`,
-        JSON.stringify({
-          items: data.items || [],
-          lastUpdated: new Date().toISOString(),
-        })
-      );
-      setStatus((prev: any) => ({
-        ...prev,
-        [provider]: response.status
-      }));
-    } catch (error) {
-      console.error(`Failed to fetch playlists for ${provider}:`, error);
-      setStatus((prev: any) => ({
-        ...prev,
-        [provider]: 500
-      }));
-    }
-  }, []);
-
+  // fetch on mount/when demo toggles or status changes
   useEffect(() => {
     if (isDemoMode) return;
-    if (status.apple === 200) {
-      fetchPlaylists("apple");
-    }
-    if (status.spotify === 200) {
-      fetchPlaylists("spotify");
-    }
+    if (status.apple === 200) fetchPlaylists(Platform.APPLE_MUSIC);
+    if (status.spotify === 200) fetchPlaylists(Platform.SPOTIFY);
   }, [status.apple, status.spotify, isDemoMode, fetchPlaylists]);
 
-
-  const handleAddToPending = (pl: Playlist, destination: Providers) => {
-    setPendingPlaylists(prev =>
-      prev.some(p => p.id === pl.id)
-        ? prev
-        : [...prev, { ...pl, status: "pending" }]
-    );
-    setPendingDisplayedOn(destination);
-  };
-
-  useEffect(() => {
-    console.log("Pending playlists:", pendingPlaylists);
-    console.log("Pending displayed on:", pendingDisplayedOn);
-  }, [pendingPlaylists]);
-
-  useEffect(() => {
-    const handleAuthChange = () => {
-      const hasToken = !!localStorage.getItem("token");
-      setIsDemoMode(!hasToken);
-    };
-
-    window.addEventListener("auth-changed", handleAuthChange);
-    window.addEventListener("storage", handleAuthChange);
-
-    return () => {
-      window.removeEventListener("auth-changed", handleAuthChange);
-      window.removeEventListener("storage", handleAuthChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isDemoMode) {
-      setPlaylists({
-        apple: DEMO_PLAYLISTS_APPLE.map((playlist) => ({ ...playlist })),
-        spotify: DEMO_PLAYLISTS_SPOTIFY.map((playlist) => ({ ...playlist })),
-      });
-      setLastUpdated({ apple: null, spotify: null });
-      setPendingPlaylists([]);
-      setPendingDisplayedOn(null);
-
-      // display a div with "Demo Mode" at the top of the screen
-      const demoDiv = document.createElement("div");
-      demoDiv.id = "demo-mode-banner";
-      if (document.getElementById("demo-mode-banner")) return;
-      demoDiv.style.position = "relative";
-      demoDiv.style.top = "0";
-      demoDiv.style.left = "0";
-      demoDiv.style.width = "100%";
-      demoDiv.style.backgroundColor = "#ffe26f8a";
-      demoDiv.style.color = "#000";
-      demoDiv.style.textAlign = "center";
-      demoDiv.style.padding = "0.5rem";
-      demoDiv.style.zIndex = "1000";
-      demoDiv.innerText = "Demo Mode: Please login to access full features.";
-      document.body.prepend(demoDiv);
-    } else {
-      const demoDiv = document.getElementById("demo-mode-banner");
-      if (demoDiv) demoDiv.remove();
-      setPlaylists({ apple: [], spotify: [] });
-      setLastUpdated({ apple: null, spotify: null });
-    }
-  }, [isDemoMode]);
-
-  const handleRemoveFromPending = (id: string) => {
-    console.log("Removing playlist from pending:", id);
+  // add/remove/commit pending
+  const handleAddToPending = (pl: Playlist, destination: Platform) => {
     setPendingPlaylists((prev) =>
-      prev.filter((playlist) => playlist.id !== id)
+      prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: plstatus.PENDING }]
     );
+    setPendingDisplayedOn(providerKey(destination));
   };
 
-  const handleCommit = () => {
-    console.log("Committing playlists:", pendingPlaylists);
+  const handleRemoveFromPending = (playlist: Playlist) => {
+    setPendingPlaylists((prev) => prev.filter((p) => p.id !== playlist.id));
+    if (pendingPlaylists.length == 1) {
+      setPendingDisplayedOn(null);
+    }
+  };
 
-    // Send a post request to the server with {pendingPlaylists, pendingDisplayedOn}
-    fetch(
-      `https://${config.subdomain}.${config.domain_name}/handler/transfer`,
-      {
+  const handleCommit = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${API_BASE}/handler/transfer`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          pendingPlaylists: pendingPlaylists.map(e => (
-            {
-              id: e.id,
-              name: e.name,
-              source: e.source,
-              trackLength: e.trackLength,
-              image: e.image,
-              description: e.description
-            }
-          )),
+          pendingPlaylists: pendingPlaylists.map((e) => ({
+            id: e.id,
+            name: e.name,
+            source: e.platform,
+            trackLength: e.trackCount,
+            image: (e as any).image,
+            description: (e as any).description,
+          })),
           destination: pendingDisplayedOn,
         }),
-      }
-    ).then((response) => {
-      if (response.status === 202) {
-        console.log("Playlists committed successfully");
-      } else {
-        console.error("Failed to commit playlists");
-      }
-    })
-      .catch((error) => {
-        console.error("Error committing playlists:", error);
       });
-
-    setPendingPlaylists([]);
-    setPendingDisplayedOn(null);
+      if (res.status !== 202) throw new Error(`transfer failed (${res.status})`);
+      // clear after success
+      setPendingPlaylists([]);
+      setPendingDisplayedOn(null);
+    } catch (err) {
+      console.error("Error committing playlists:", err);
+    }
   };
 
   const handleCancel = () => {
@@ -234,90 +137,91 @@ const App: React.FC = () => {
     setPendingDisplayedOn(null);
   };
 
+  // token/demo mode watchers
   useEffect(() => {
-    // check if token exists
+    const handleAuthChange = () => {
+      const hasToken = !!localStorage.getItem("token");
+      setIsDemoMode(!hasToken);
+    };
+    window.addEventListener("auth-changed", handleAuthChange);
+    window.addEventListener("storage", handleAuthChange);
+    return () => {
+      window.removeEventListener("auth-changed", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+    };
+  }, []);
+
+  // demo vs real data bootstrap
+  useEffect(() => {
+    if (isDemoMode) {
+      setPlaylists({
+        apple: DEMO_PLAYLISTS_APPLE.map((p) => ({ ...p })),
+        spotify: DEMO_PLAYLISTS_SPOTIFY.map((p) => ({ ...p })),
+      });
+      setLastUpdated({ apple: null, spotify: null });
+      setPendingPlaylists([]);
+      setPendingDisplayedOn(null);
+      return;
+    }
+
+    // real mode: load cache, else fetch
     const token = localStorage.getItem("token");
-    // if (!token) return;
-    if (isDemoMode || !token) return;
+    if (!token) return;
 
-    // Load playlists from localStorage on initial load
-    // if available and not expired, if expired, fetch new playlists
-    const appleStorage = localStorage.getItem("apple-playlists");
-    const spotifyStorage = localStorage.getItem("spotify-playlists");
-
-    // Parse user data to check if {apple: true, spotify: true}
     const userData = JSON.parse(localStorage.getItem("user_data") || "{}");
 
-    if (appleStorage && !userData.apple) {
-      const { items, lastUpdated } = JSON.parse(appleStorage);
-      if (new Date(lastUpdated) > new Date(Date.now() - 1000 * 60 * 60)) {
-        setPlaylists((prev) => ({
-          ...prev,
-          apple: items,
-        }));
-        setLastUpdated((prev: any) => ({
-          ...prev,
-          apple: new Date(lastUpdated),
-        }));
-      } else {
-        fetchPlaylists("apple");
+    ([
+      { platform: Platform.APPLE_MUSIC, key: "apple" as const },
+      { platform: Platform.SPOTIFY, key: "spotify" as const },
+    ] as const).forEach(({ platform, key }) => {
+      const cache = localStorage.getItem(`${key}-playlists`);
+      if (cache && !userData[key]) {
+        try {
+          const { items, lastUpdated } = JSON.parse(cache);
+          if (new Date(lastUpdated) > new Date(Date.now() - 1000 * 60 * 60)) {
+            setPlaylists((prev) => ({ ...prev, [key]: items }));
+            setLastUpdated((prev) => ({ ...prev, [key]: new Date(lastUpdated) }));
+            return;
+          }
+        } catch {
+          /* ignore parse issues and fetch fresh */
+        }
       }
-    } else {
-      fetchPlaylists("apple");
-    }
-
-    if (spotifyStorage && !userData.spotify) {
-      const { items, lastUpdated } = JSON.parse(spotifyStorage);
-      if (new Date(lastUpdated) > new Date(Date.now() - 1000 * 60 * 60)) {
-        setPlaylists((prev) => ({
-          ...prev,
-          spotify: items,
-        }));
-        setLastUpdated((prev: any) => ({
-          ...prev,
-          spotify: new Date(lastUpdated),
-        }));
-      } else {
-        fetchPlaylists("spotify");
-      }
-    } else {
-      fetchPlaylists("spotify");
-    }
+      fetchPlaylists(platform);
+    });
   }, [fetchPlaylists, isDemoMode]);
 
   return (
     <div>
       <nav className="navbar">
-        <div style={{ flex: 1 }}></div>
-        <a href="#" style={{ flex: 1, textAlign: "center" }}>
-          <img
-            src={DarkLogo}
-            alt="logo"
-            id="logo"
-            className="w-32 h-i padding-0"
-          />
+        <div className="flex-1" />
+        <a href="#" className="flex-1 text-center m-0! place-items-center">
+          <img src={DarkLogo} alt="logo" id="logo" className="w-32 h-i padding-0 align-center" />
         </a>
-
-        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-          <Switch className="btn btn-sm btn-ghost" onClick={() => setTheme(prev => prev === "light" ? "dark" : "light")}></Switch>
-          <Account setStatus={setStatus} theme={theme} toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")} />
+        <div className="flex flex-1 justify-end gap-[0.5rem]">
+          <Switch className="btn btn-sm btn-ghost" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))} />
+          <Account
+            setStatus={setStatus}
+            theme={theme}
+            toggleTheme={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+          />
         </div>
       </nav>
 
       <div className="flex flex-row">
         <PlaylistSection
-          provider="apple"
-          playlists={
-            (pendingDisplayedOn === "apple") ? [] : playlists.apple
-          }
+          platform={Platform.APPLE_MUSIC}
+          playlists={pendingDisplayedOn === "apple" ? [] : playlists.apple}
           onAddToPending={handleAddToPending}
-          onRefresh={() => fetchPlaylists("apple")}
+          onRefresh={() => fetchPlaylists(Platform.APPLE_MUSIC)}
           lastUpdated={lastUpdated.apple}
         >
-          {(status.apple === 500 || status.apple === 401) && <Reauthorize provider="apple" setStatus={setStatus} />}
+          {(status.apple === 500 || status.apple === 401) && (
+            <Reauthorize provider="apple" setStatus={setStatus} />
+          )}
           {pendingDisplayedOn === "apple" && (
             <PendingPlaylist
-              pendingPlaylists={pendingPlaylists}
+              playlists={pendingPlaylists}
               onCommit={handleCommit}
               onRemoveAll={handleCancel}
               onRemove={handleRemoveFromPending}
@@ -326,20 +230,18 @@ const App: React.FC = () => {
         </PlaylistSection>
 
         <PlaylistSection
-          provider="spotify"
-          playlists={
-            pendingDisplayedOn === "spotify"
-              ? []
-              : playlists.spotify
-          }
+          platform={Platform.SPOTIFY}
+          playlists={pendingDisplayedOn === "spotify" ? [] : playlists.spotify}
           onAddToPending={handleAddToPending}
-          onRefresh={async () => await fetchPlaylists("spotify")}
+          onRefresh={() => fetchPlaylists(Platform.SPOTIFY)}
           lastUpdated={lastUpdated.spotify}
         >
-          {(status.spotify === 500 || status.spotify === 401) && <Reauthorize provider="spotify" setStatus={setStatus} />}
+          {(status.spotify === 500 || status.spotify === 401) && (
+            <Reauthorize provider="spotify" setStatus={setStatus} />
+          )}
           {pendingDisplayedOn === "spotify" && (
             <PendingPlaylist
-              pendingPlaylists={pendingPlaylists}
+              playlists={pendingPlaylists}
               onCommit={handleCommit}
               onRemoveAll={handleCancel}
               onRemove={handleRemoveFromPending}
