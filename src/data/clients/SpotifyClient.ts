@@ -1,4 +1,4 @@
-import { Platform } from "../../types/platform";
+import Platform from "../../types/platform";
 import { state } from "../../types/status";
 import type { IPlatformClient } from "./IPlatformClient";
 import type { Playlist } from "../../types/playlist";

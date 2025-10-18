@@ -3,7 +3,7 @@
  * @interface IPlatformClient
  */
 
-import { Platform } from "../../types/platform";
+import Platform from "../../types/platform";
 import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
 
