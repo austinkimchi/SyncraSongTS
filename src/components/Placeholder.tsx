@@ -3,7 +3,7 @@ import { Card, Placeholder } from "react-bootstrap";
 export const PlaylistImage = ({ width = 150, height = 150 }) => {
   return (
     <Card
-      className="playlist-image"
+      className="aspect-square"
       style={{ width: width, height: height }}
       bg="Secondary"
     >
