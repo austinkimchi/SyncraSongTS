@@ -7,18 +7,17 @@ import Reauthorize from "./components/Reauthorize";
 import { Switch } from "@mui/material";
 
 import type { Playlist } from "./types/playlist";
-import { Platform } from "./types/platform";
+import Platform from "./types/platform";
 import { state as plstatus } from "./types/status";
+import { } from "./handler/callback";
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
 
+import { APP_FULL_URL } from "./config";
 import "./css/App.css";
 
-// Load API URL
-const API_BASE_DOMAIN = (import.meta as any).env?.APP_BASE_DOMAIN;
-const API_SUB_DOMAIN = (import.meta as any).env?.APP_SUB_DOMAIN;
-export const API_BASE = `https://${API_SUB_DOMAIN}.${API_BASE_DOMAIN}`;
+
 
 const providerKey = (p: Platform): Platform =>
   p === Platform.APPLE_MUSIC ? Platform.APPLE_MUSIC : Platform.SPOTIFY;
@@ -108,7 +107,7 @@ const App: React.FC = () => {
   const handleCommit = async () => {
     try {
       const token = localStorage.getItem("token") || "";
-      const res = await fetch(`${API_BASE}/handler/transfer`, {
+      const res = await fetch(`${APP_FULL_URL}/handler/transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
