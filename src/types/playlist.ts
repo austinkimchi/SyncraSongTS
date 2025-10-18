@@ -1,24 +1,23 @@
-import { Providers } from "./provider";
-
-const statusValues = ["pending", "processing", "success", "error"] as const;
-type PlaylistStatus = typeof statusValues[number];
+import { Platform } from "./platform";
+import { state as PlaylistStatus } from "./status";
 
 export interface Playlist {
   id: string;
   name: string;
   image?: string;
-  trackLength: number;
+  trackCount: number;
   description?: string;
   isPublic: boolean;
   href: string;
-  source: string;
+  platform: string;
+  owner: string;
   status: PlaylistStatus;
 }
 
 export interface PlaylistCollectionProps {
   playlists: Playlist[];
-  provider?: Providers;
+  provider?: Platform;
   status?: PlaylistStatus;
   onAdd?: (playlist: Playlist) => void;
-  onRemove?: (id: string) => void;
+  onRemove?: (playlist: Playlist) => void;
 }
