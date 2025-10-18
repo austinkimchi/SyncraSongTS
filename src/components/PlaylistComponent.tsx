@@ -2,10 +2,8 @@ import React from "react";
 import { Playlist } from "../types/playlist";
 import PlaceholderNoImage from "../assets/placeholders/300x300-noimage.png";
 import { useDrag, DragSourceMonitor } from "react-dnd";
-import { Platform } from "../types/platform";
 import "../css/PlaylistComponent.css";
 import { state } from "../types/status";
-import { get } from "http";
 
 interface PlaylistComponentProps {
   playlist: Playlist;
