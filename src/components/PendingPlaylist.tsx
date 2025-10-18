@@ -1,26 +1,25 @@
 import React from "react";
 import PlaylistCollection from "./PlaylistCollection";
-import { Playlist } from "../types/playlist";
+import { PlaylistCollectionProps } from "../types/playlist";
+import { state } from "../types/status";
 
-interface PendingPlaylistProps {
-  pendingPlaylists: Playlist[];
+interface PendingPlaylistProps extends PlaylistCollectionProps {
   onCommit: () => void;
   onRemoveAll: () => void;
-  onRemove: (id: string) => void;
 }
 
 const PendingPlaylist: React.FC<PendingPlaylistProps> = ({
-  pendingPlaylists,
+  playlists,
   onCommit,
   onRemoveAll,
-  onRemove,
+  onRemove
 }) => {
   return (
     <div className="pending-playlists">
       <h3>Pending Playlists</h3>
       <PlaylistCollection
-        playlists={pendingPlaylists}
-        status="pending"
+        playlists={playlists}
+        status={state.PENDING}
         onRemove={onRemove}
       />
       <button onClick={onCommit}>Commit Transfer</button>
