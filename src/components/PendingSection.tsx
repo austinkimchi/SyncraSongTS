@@ -8,7 +8,7 @@ interface PendingPlaylistProps extends PlaylistCollectionProps {
   onRemoveAll: () => void;
 }
 
-const PendingPlaylist: React.FC<PendingPlaylistProps> = ({
+const PendingSection: React.FC<PendingPlaylistProps> = ({
   playlists,
   onCommit,
   onRemoveAll,
@@ -28,4 +28,4 @@ const PendingPlaylist: React.FC<PendingPlaylistProps> = ({
   );
 };
 
-export default PendingPlaylist;
+export default PendingSection;

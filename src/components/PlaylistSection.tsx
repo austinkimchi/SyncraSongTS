@@ -14,22 +14,21 @@ import { state } from "../types/status";
 
 const loggedIn = !!localStorage.getItem("token");
 
-interface Props {
-  platform: Platform;
+interface PlaylistSectionProps {
   playlists: Playlist[];
+  platform: Platform;
   lastUpdated?: Date | null;
   onRefresh: () => void;
   onAddToPending: (p: Playlist, destination: Platform) => void;
-  children?: React.ReactNode;
+  children?: React.ReactNode; // For pending section
 }
 
-const PlaylistSection: React.FC<Props> = ({
+const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   platform,
   playlists,
   lastUpdated,
   onRefresh,
-  onAddToPending,
-  children,
+  onAddToPending
 }) => {
   const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
@@ -106,7 +105,6 @@ const PlaylistSection: React.FC<Props> = ({
         onAdd={(pl) => onAddToPending(pl, platform)}
         onRemove={() => { }}
       />
-      {children}
     </div>
   );
 };

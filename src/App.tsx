@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import DarkLogo from "./assets/logo/logo-dark.svg";
 import PlaylistSection from "./components/PlaylistSection";
-import PendingPlaylist from "./components/PendingPlaylist";
+import PendingSection from "./components/PendingSection";
 import Account from "./components/Account";
 import Reauthorize from "./components/Reauthorize";
 import { Switch } from "@mui/material";
@@ -219,7 +219,7 @@ const App: React.FC = () => {
             <Reauthorize provider="apple" setStatus={setStatus} />
           )}
           {pendingDisplayedOn === "apple" && (
-            <PendingPlaylist
+            <PendingSection
               playlists={pendingPlaylists}
               onCommit={handleCommit}
               onRemoveAll={handleCancel}
@@ -230,7 +230,7 @@ const App: React.FC = () => {
 
         <PlaylistSection
           platform={Platform.SPOTIFY}
-          playlists={pendingDisplayedOn === "spotify" ? [] : playlists.spotify}
+          playlists={pendingDisplayedOn === Platform.SPOTIFY ? [] : playlists.spotify}
           onAddToPending={handleAddToPending}
           onRefresh={() => fetchPlaylists(Platform.SPOTIFY)}
           lastUpdated={lastUpdated.spotify}
@@ -238,8 +238,8 @@ const App: React.FC = () => {
           {(status.spotify === 500 || status.spotify === 401) && (
             <Reauthorize provider="spotify" setStatus={setStatus} />
           )}
-          {pendingDisplayedOn === "spotify" && (
-            <PendingPlaylist
+          {pendingDisplayedOn === Platform.SPOTIFY && (
+            <PendingSection
               playlists={pendingPlaylists}
               onCommit={handleCommit}
               onRemoveAll={handleCancel}
