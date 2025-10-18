@@ -1,5 +1,5 @@
 import React from "react";
-import PlaylistComponent from "./PlaylistComponent";
+import PlaylistCard from "./PlaylistCard";
 import { PlaylistCollectionProps } from "../types/playlist";
 
 const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
@@ -10,7 +10,7 @@ const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
 }) => (
   <div className="grid playlist-collection display-grid md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
     {playlists?.map((pl) => {
-      return (<PlaylistComponent
+      return (<PlaylistCard
         key={pl.id}
         playlist={pl}
         onAdd={onAdd}

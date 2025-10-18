@@ -8,8 +8,8 @@ import { Switch } from "@mui/material";
 
 import type { Playlist } from "./types/playlist";
 import Platform from "./types/platform";
-import { state as plstatus } from "./types/status";
-import { } from "./handler/callback";
+import { state } from "./types/status";
+import { } from "./handler/callback"; // just run on import
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
@@ -92,7 +92,7 @@ const App: React.FC = () => {
   // add/remove/commit pending
   const handleAddToPending = (pl: Playlist, destination: Platform) => {
     setPendingPlaylists((prev) =>
-      prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: plstatus.PENDING }]
+      prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.PENDING }]
     );
     setPendingDisplayedOn(providerKey(destination));
   };

@@ -11,7 +11,7 @@ interface PlaylistComponentProps {
   onRemove?: (pl: Playlist) => void;
 }
 
-const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
+const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   playlist: { id, name, image, trackCount, status, platform, description, isPublic, href },
   onAdd,
   onRemove,
@@ -55,4 +55,4 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
   );
 };
 
-export default PlaylistComponent;
+export default PlaylistCard;
