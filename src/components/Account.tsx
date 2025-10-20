@@ -15,7 +15,6 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
 import LoginIcon from "@mui/icons-material/Login";
-import ThemeToggle from "./ThemeToggle";
 import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
 
 import { APP_FULL_URL } from "../config";
@@ -80,14 +79,12 @@ const Account: React.FC<AccountProps> = ({ }) => {
 
   const fetchSessionAndInfo = useCallback(async () => {
     try {
-      // 1) Optional: ping session to see if we’re logged in
       const sessRes = await api("/auth/session");
       if (!sessRes.ok) {
         setAccount(null);
         return;
       }
 
-      // 2) Get richer account info (provider statuses)
       const infoRes = await api("/auth/users/info");
       if (!infoRes.ok) {
         setAccount(null);
@@ -95,8 +92,6 @@ const Account: React.FC<AccountProps> = ({ }) => {
       }
       const data: AccountInfo = await infoRes.json();
       setAccount(data);
-
-      // Keep your existing downstream expectations:
       setError("");
     } catch (e) {
       setError("Failed to load account. Servers may not be responding.");

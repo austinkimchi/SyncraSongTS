@@ -1,12 +1,32 @@
 import Platform from "../types/platform";
+import type { IPlatformClient } from "../data/clients/IPlatformClient";
 import { SpotifyClient } from "../data/clients/SpotifyClient";
 import { AppleMusicClient } from "../data/clients/AppleMusicClient";
 
-export function getClient(platform: Platform) {
-    const client =
-        platform === Platform.SPOTIFY ? new SpotifyClient() :
-            platform === Platform.APPLE_MUSIC ? new AppleMusicClient() /* new AppleMusicClient() */ :
-                (() => { throw new Error(`Unsupported platform: ${platform}`); })();
+class PlatformClientRegistry {
+  private readonly clients = new Map<Platform, IPlatformClient>();
 
-    return client;
+  get(platform: Platform): IPlatformClient {
+    if (!this.clients.has(platform)) {
+      this.clients.set(platform, this.createClient(platform));
+    }
+    return this.clients.get(platform)!;
+  }
+
+  private createClient(platform: Platform): IPlatformClient {
+    switch (platform) {
+      case Platform.SPOTIFY:
+        return new SpotifyClient();
+      case Platform.APPLE_MUSIC:
+        return new AppleMusicClient();
+      default:
+        throw new Error(`Unsupported platform: ${platform}`);
+    }
+  }
+}
+
+export const platformClientRegistry = new PlatformClientRegistry();
+
+export function getClient(platform: Platform) {
+  return platformClientRegistry.get(platform);
 }

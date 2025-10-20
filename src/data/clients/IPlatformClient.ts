@@ -1,56 +1,64 @@
-/**
- * @abstract Abstract interface for platform clients such as Spotify, Apple Music, etc.
- * @interface IPlatformClient
- */
-
 import Platform from "../../types/platform";
 import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
 
-export interface IPlatformClient {
-    readonly platform: Platform;
-    profile?: { id: string; displayName?: string } | undefined;
-
-    setToken?(token: string): void;
-
-    getRefreshToken?(): Promise<string>;
-
-    /* Check if user is logged in */
-    isLoggedIn(): Promise<boolean>;
-
-    /* Fetch music platform username/id */
-    getDisplayName(
-    ): Promise<{ id: string; name: string }>;
-
-    /* Fetch user playlists */
-    getUserPlaylists(
-        opts?: { offset?: string; limit?: number }
-    ): Promise<
-        {
-            items: Playlist[];
-            next?: Boolean;
-        }
-    >;
-
-    /* Fetch tracks in a playlist */
-    getPlaylistTracks(
-        playlistId: string,
-        opts?: { cursor?: string; limit?: number }
-    ): Promise<
-        {
-            items: Track[];
-            next?: Boolean;
-        }
-    >;
-
-    /* Create a new playlist */
-    createPlaylist(
-        name: string,
-        opts?: { description?: string; isPublic?: boolean; image?: string }
-    ): Promise<Playlist>;
-
-    searchTrackByISRC(
-        isrc: string,
-        opts: { limit?: number }
-    ): Promise<Track[]>;
+export interface PlaylistQueryOptions {
+  offset?: string;
+  limit?: number;
 }
+
+export interface PlaylistTracksQueryOptions {
+  cursor?: string;
+  limit?: number;
+}
+
+export interface PlaylistCreationOptions {
+  description?: string;
+  isPublic?: boolean;
+  image?: string;
+}
+
+export interface PlatformProfile {
+  id: string;
+  displayName?: string;
+}
+
+export abstract class PlatformClient {
+  abstract readonly platform: Platform;
+  profile?: PlatformProfile;
+
+  setToken?(token: string): void;
+
+  getRefreshToken?(): Promise<string>;
+
+  abstract isLoggedIn(): Promise<boolean>;
+
+  abstract getDisplayName(): Promise<PlatformProfile>;
+
+  abstract getUserPlaylists(
+    opts?: PlaylistQueryOptions,
+  ): Promise<{
+    items: Playlist[];
+    next?: boolean;
+  }>;
+
+  abstract getPlaylistTracks(
+    playlistId: string,
+    opts?: PlaylistTracksQueryOptions,
+  ): Promise<{
+    items: Track[];
+    next?: boolean;
+  }>;
+
+  abstract createPlaylist(
+    name: string,
+    opts?: PlaylistCreationOptions,
+  ): Promise<Playlist>;
+
+  abstract searchTrackByISRC(
+    isrc: string,
+    opts?: { limit?: number },
+  ): Promise<Track[]>;
+}
+
+export type IPlatformClient = PlatformClient;
