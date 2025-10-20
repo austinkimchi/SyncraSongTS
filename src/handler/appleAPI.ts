@@ -22,9 +22,16 @@ class AppleMusicAuthService implements PlatformAuthService {
 
   async redirectToOAuth(): Promise<void> {
     try {
+      const authToken = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
       const fetchDevToken = await fetch(`${API_FULL_URL}/api/apple/devToken`, {
         method: "GET",
         mode: "cors",
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
       });
 
       if (!fetchDevToken.ok) {

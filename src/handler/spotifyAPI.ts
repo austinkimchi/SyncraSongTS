@@ -1,5 +1,7 @@
 import { APP_FULL_URL, API_FULL_URL, SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from "../config";
+import Platform from "../types/platform";
 import type { PlatformAuthService } from "./PlatformAuthService";
+import { storePendingAccount } from "./pendingAccount";
 
 export interface SpotifyProfile {
   country: string;
@@ -137,20 +139,52 @@ class SpotifyAuthService implements PlatformAuthService {
     return data;
   }
 
-  private async setAccessToken(token: string, userID: string): Promise<string> {
-    const clientToken = await fetch(`${API_FULL_URL}/api/spotify/setToken`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accessToken: token, userID }),
-    }).catch(() => {
-      return null;
-    });
+  private async setAccessToken(token: string, userID: string): Promise<void> {
+    const storedToken = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (storedToken) {
+      headers.Authorization = `Bearer ${storedToken}`;
+    }
 
-    if (!clientToken) return "";
+    let clientToken: Response | null = null;
+    try {
+      clientToken = await fetch(`${API_FULL_URL}/api/spotify/setToken`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ accessToken: token, userID }),
+      });
+    } catch (error) {
+      console.error("Failed to set Spotify access token", error);
+      return;
+    }
 
-    const data = await clientToken.json();
+    if (clientToken.status === 401) {
+      storePendingAccount({
+        provider: Platform.SPOTIFY,
+        providerAccessToken: token,
+        providerUserId: userID,
+      });
+      return;
+    }
 
-    return data.client_token;
+    if (!clientToken.ok) {
+      console.error("Unexpected response when setting Spotify access token", clientToken.status);
+      return;
+    }
+
+    let data: { client_token?: string; token?: string } = {};
+    try {
+      data = await clientToken.json();
+    } catch (error) {
+      console.error("Failed to parse Spotify token response", error);
+      return;
+    }
+
+    const clientAuthToken = data.client_token ?? data.token;
+    if (clientAuthToken) {
+      localStorage.setItem("token", clientAuthToken);
+      window.dispatchEvent(new Event("auth-changed"));
+    }
   }
 }
 

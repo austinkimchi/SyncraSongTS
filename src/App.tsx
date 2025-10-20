@@ -6,6 +6,7 @@ import PlaylistSection from "./components/PlaylistSection";
 import PendingSection from "./components/PendingSection";
 import Account from "./components/Account";
 import ThemeToggle from "./components/ThemeToggle";
+import CreateAccountModal from "./components/CreateAccountModal";
 
 
 // Types and helpers
@@ -16,8 +17,12 @@ import { } from "./handler/callback"; // just run on import
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
+import {
+  PendingAccountInfo,
+  getPendingAccount,
+  subscribeToPendingAccount,
+} from "./handler/pendingAccount";
 
-import { APP_FULL_URL } from "./config";
 import "./css/App.css";
 
 const providerKey = (p: Platform): Platform =>
@@ -29,6 +34,8 @@ const App: React.FC = () => {
   const [playlists, setPlaylists] = useState<Partial<Record<Platform, Playlist[]>>>({});
   const [pendingPlaylists, setPendingPlaylists] = useState<Playlist[]>([]);
   const [pendingDisplayedOn, setPendingDisplayedOn] = useState<Platform | null>(null);
+  const [pendingAccount, setPendingAccount] = useState<PendingAccountInfo | null>(() => getPendingAccount());
+  const [showCreateAccount, setShowCreateAccount] = useState<boolean>(() => getPendingAccount() !== null);
 
   const [lastUpdated, setLastUpdated] = useState<{ apple: Date | null; spotify: Date | null }>({
     apple: null,
@@ -112,6 +119,34 @@ const App: React.FC = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const handlePendingAccountChange = () => {
+      const info = getPendingAccount();
+      setPendingAccount(info);
+      setShowCreateAccount(info !== null);
+    };
+
+    const unsubscribe = subscribeToPendingAccount(handlePendingAccountChange);
+    window.addEventListener("auth-changed", handlePendingAccountChange);
+    handlePendingAccountChange();
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("auth-changed", handlePendingAccountChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (showCreateAccount) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+    return undefined;
+  }, [showCreateAccount]);
+
 
   return (
     <div>
@@ -163,6 +198,8 @@ const App: React.FC = () => {
           )}
         </PlaylistSection>
       </div>
+
+      {showCreateAccount && pendingAccount && <CreateAccountModal pendingAccount={pendingAccount} />}
     </div>
   );
 };

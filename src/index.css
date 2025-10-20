@@ -6,6 +6,10 @@
   --accent-color: #646cff;
   --nav-bg: #e9e9e9;
   --nav-text-color: #242424;
+  --surface-color: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --input-bg: #ffffff;
+  --text-color-secondary: #4b5563;
 
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -31,6 +35,10 @@
   --accent-color: #8fa5ff;
   --nav-bg: #1a1a1a;
   --nav-text-color: #ffffff;
+  --surface-color: #181818;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --input-bg: #111111;
+  --text-color-secondary: #b3b3b3;
 }
 
 a,
