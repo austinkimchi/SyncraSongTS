@@ -3,15 +3,51 @@ import { state } from "../../types/status";
 import type { IPlatformClient } from "./IPlatformClient";
 import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
+import { isSpotifyLoggedIn, getSpotifyRefreshToken } from '../../handler/spotifyAPI';
 
 export class SpotifyClient implements IPlatformClient {
     readonly platform = Platform.SPOTIFY;
-    private token: string = "";
+    private token?: string;
+    profile?: { id: string; displayName?: string } | undefined;
 
-    setToken(token: string) { this.token = token; };
-    private get headers() { return { Authorization: `Bearer ${this.token}` }; };
+    constructor() {
+        this.token = undefined;
+        this.profile = undefined;
+    }
 
-    async getCurrentUser() {
+    setToken(token: string): void {
+        this.token = token;
+    }
+
+
+    async getRefreshToken(): Promise<string> {
+        const token = await getSpotifyRefreshToken(this.profile?.id || "", this.token || "");
+        if (!token) {
+            return Promise.reject("No refresh token available");
+        }
+        return Promise.resolve(token);
+    }
+
+    //TODO update this correctly after login
+    private headers = {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json"
+    };
+
+    async isLoggedIn(): Promise<boolean> {
+        const profile = await isSpotifyLoggedIn();
+        if (profile) {
+            this.profile = {
+                id: profile.id, 
+                displayName: profile.display_name || undefined
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    async getDisplayName() {
         const r = await fetch('https://api.spotify.com/v1/me', { headers: this.headers });
         const data = await r.json();
         return { id: data.id, name: data.display_name };
@@ -41,7 +77,7 @@ export class SpotifyClient implements IPlatformClient {
     };
     async createPlaylist(name: string, opts?: { description?: string; public?: boolean }) {
         // Need user id to create playlists
-        const me = await this.getCurrentUser();
+        const me = await this.getDisplayName();
         const r = await fetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
             method: "POST",
             headers: { ...this.headers, "Content-Type": "application/json" },
@@ -88,7 +124,7 @@ export class SpotifyClient implements IPlatformClient {
             const chunk = uris.slice(i, i + 100);
             await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
                 method: "POST",
-                headers: { ...this.headers, "Content-Type": "application/json" },
+                headers: this.headers,
                 body: JSON.stringify({ uris: chunk }),
             });
         }

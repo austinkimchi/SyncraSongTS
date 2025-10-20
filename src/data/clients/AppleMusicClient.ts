@@ -3,20 +3,23 @@ import { state } from "../../types/status";
 import type { IPlatformClient } from "./IPlatformClient";
 import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
+import { isAppleMusicLoggedIn } from '../../handler/appleAPI';
 
 export class AppleMusicClient implements IPlatformClient {
     readonly platform = Platform.APPLE_MUSIC;
-    private token: string = "";
+    private token?: string;
+    profile?: { id: string; } | undefined;
 
-    setToken(token: string) { this.token = token; };
-    private get headers() {
-        return {
-            Authorization: `Bearer ${this.token}`,
-            "Content-Type": "application/json"
-        };
-    };
+    constructor() {
+        this.token = undefined;
+        this.profile = undefined;
+    }
 
-    async getCurrentUser() {
+    async isLoggedIn(): Promise<boolean> {
+        return isAppleMusicLoggedIn();
+    }
+
+    async getDisplayName() {
         // TODO: Implement Apple Music user retrieval
         return { id: "apple_user", name: "Apple Music User" };
     }

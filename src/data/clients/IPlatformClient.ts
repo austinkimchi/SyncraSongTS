@@ -9,12 +9,17 @@ import type { Track } from "../../types/track";
 
 export interface IPlatformClient {
     readonly platform: Platform;
+    profile?: { id: string; displayName?: string } | undefined;
 
-    /* Sets OAuth Token */
-    setToken(token: string): void;
+    setToken?(token: string): void;
+
+    getRefreshToken?(): Promise<string>;
+
+    /* Check if user is logged in */
+    isLoggedIn(): Promise<boolean>;
 
     /* Fetch music platform username/id */
-    getCurrentUser(
+    getDisplayName(
     ): Promise<{ id: string; name: string }>;
 
     /* Fetch user playlists */
