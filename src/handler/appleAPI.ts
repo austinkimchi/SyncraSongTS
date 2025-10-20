@@ -9,6 +9,14 @@ interface AppleMusicConfig {
     };
 }
 
+const musicKitConfig: AppleMusicConfig = {
+    developerToken: "",
+    app: {
+        name: "SyncraSong",
+        build: "0.0.2"
+    },
+};
+
 async function redirectToOAuth(): Promise<void> {
     try {
         const fetchDevToken = await fetch(`${API_FULL_URL}/api/apple/devToken`, {
@@ -20,13 +28,7 @@ async function redirectToOAuth(): Promise<void> {
             return console.error("Failed to get developer token");
 
         const { developerToken } = await fetchDevToken.json();
-        const musicKitConfig: AppleMusicConfig = {
-            developerToken,
-            app: {
-                name: "SyncraSong",
-                build: "0.0.2"
-            },
-        };
+        musicKitConfig.developerToken = developerToken;
         await MusicKit.configure(musicKitConfig);
         const musicInstance = MusicKit.getInstance();
         await musicInstance.authorize();
@@ -46,7 +48,18 @@ async function handleCallback(): Promise<void> {
     return;
 }
 
+async function isLoggedIn(): Promise<boolean> {
+    try {
+        await MusicKit.configure(musicKitConfig);
+        const musicInstance = MusicKit.getInstance();
+        return musicInstance.isAuthorized;
+    } catch (error) {
+        return false;
+    }
+}
+
 export {
     redirectToOAuth as redirectToAppleOAuth,
-    handleCallback as handleAppleCallback
+    handleCallback as handleAppleCallback,
+    isLoggedIn as isAppleMusicLoggedIn
 }
