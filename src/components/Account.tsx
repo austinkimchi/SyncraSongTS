@@ -55,12 +55,9 @@ interface AccountInfo {
 }
 
 interface AccountProps {
-  theme: "light" | "dark";
-  toggleTheme: () => void;
-  setStatus: (obj: { apple: number; spotify: number }) => void;
 }
 
-const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
+const Account: React.FC<AccountProps> = ({ }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [error, setError] = useState<string>("");
@@ -100,16 +97,12 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
       setAccount(data);
 
       // Keep your existing downstream expectations:
-      setStatus({
-        apple: data.apple_status ?? 0,
-        spotify: data.spotify_status ?? 0,
-      });
       setError("");
     } catch (e) {
       setError("Failed to load account. Servers may not be responding.");
       setAccount(null);
     }
-  }, [setStatus]);
+  }, []);
 
   useEffect(() => {
     fetchSessionAndInfo();
@@ -175,7 +168,6 @@ const Account: React.FC<AccountProps> = ({ theme, toggleTheme, setStatus }) => {
       </MenuItem>
       <MenuItem onClick={handleMenuClose}>
         <ListItemIcon><BrightnessMediumIcon fontSize="small" /></ListItemIcon>
-        <ThemeToggle theme={theme} toggle={toggleTheme} />
       </MenuItem>
       <Divider />
       <MenuItem
