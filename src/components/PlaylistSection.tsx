@@ -28,7 +28,8 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   playlists,
   lastUpdated,
   onRefresh,
-  onAddToPending
+  onAddToPending,
+  children
 }) => {
   const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
@@ -105,6 +106,7 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         onAdd={(pl) => onAddToPending(pl, platform)}
         onRemove={() => { }}
       />
+      {children}
     </div>
   );
 };
