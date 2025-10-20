@@ -23,7 +23,7 @@ export interface IPlatformClient {
     ): Promise<
         {
             items: Playlist[];
-            next?: Boolean;
+            next?: boolean;
         }
     >;
 
@@ -34,7 +34,7 @@ export interface IPlatformClient {
     ): Promise<
         {
             items: Track[];
-            next?: Boolean;
+            next?: boolean;
         }
     >;
 

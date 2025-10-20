@@ -1,8 +1,9 @@
 import AppleLogo from "../assets/provider/applemusic.svg";
 import SpotifyLogo from "../assets/provider/spotify.png";
 import SoundCloudLogo from "../assets/provider/SoundCloud.png";
-import { handleSpotifyCallback, redirectToSpotifyOAuth } from "../handler/spotifyAPI";
-import { handleAppleCallback, redirectToAppleOAuth } from "../handler/appleAPI";
+import { redirectToSpotifyOAuth, handleSpotifyCallback, spotifyOAuthClient } from "../handler/spotifyAPI";
+import { redirectToAppleOAuth, handleAppleCallback, appleMusicOAuthClient } from "../handler/appleAPI";
+import type { IPlatformOAuthClient } from "../handler/IPlatformOAuthClient";
 
 enum Platform {
     SPOTIFY = "spotify",
@@ -18,6 +19,7 @@ interface PlatformInfo {
     OAuthFunction?: () => Promise<void>;
     CallbackFunction?: () => Promise<void>;
     scopes?: string[];
+    oauthClient?: IPlatformOAuthClient;
 }
 
 const PLATFORMS: Record<Platform, PlatformInfo> = {
@@ -28,6 +30,7 @@ const PLATFORMS: Record<Platform, PlatformInfo> = {
         logo: SpotifyLogo,
         OAuthFunction: redirectToSpotifyOAuth,
         CallbackFunction: handleSpotifyCallback,
+        oauthClient: spotifyOAuthClient,
         scopes: [
             "user-read-private",
             "user-read-email"
@@ -39,7 +42,8 @@ const PLATFORMS: Record<Platform, PlatformInfo> = {
         loginLabel: "Sign in with Apple",
         logo: AppleLogo,
         OAuthFunction: redirectToAppleOAuth,
-        CallbackFunction: handleAppleCallback
+        CallbackFunction: handleAppleCallback,
+        oauthClient: appleMusicOAuthClient,
     },
     [Platform.SOUNDCLOUD]: {
         id: Platform.SOUNDCLOUD,
@@ -55,6 +59,7 @@ const getPlatformLogo = (p: Platform): string => PLATFORMS[p].logo;
 const getPlatformDisplayName = (p: Platform): string => PLATFORMS[p].displayName;
 const getPlatformOAuthFunction = (p: Platform): (() => Promise<void>) | undefined => PLATFORMS[p].OAuthFunction;
 const getPlatformCallbackFunction = (p: Platform): (() => Promise<void>) | undefined => PLATFORMS[p].CallbackFunction;
+const getPlatformOAuthClient = (p: Platform): IPlatformOAuthClient | undefined => PLATFORMS[p].oauthClient;
 
 export default Platform;
 export {
@@ -62,5 +67,6 @@ export {
     getPlatformLogo,
     getPlatformDisplayName,
     getPlatformOAuthFunction,
-    getPlatformCallbackFunction
+    getPlatformCallbackFunction,
+    getPlatformOAuthClient
 }

@@ -1,103 +1,169 @@
 import Platform from "../../types/platform";
-import { state } from "../../types/status";
+import { state as playlistState } from "../../types/status";
 import type { IPlatformClient } from "./IPlatformClient";
 import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
 
-export class SpotifyClient implements IPlatformClient {
-    readonly platform = Platform.SPOTIFY;
-    private token: string = "";
-
-    setToken(token: string) { this.token = token; };
-    private get headers() { return { Authorization: `Bearer ${this.token}` }; };
-
-    async getCurrentUser() {
-        const r = await fetch('https://api.spotify.com/v1/me', { headers: this.headers });
-        const data = await r.json();
-        return { id: data.id, name: data.display_name };
-    }
-
-    async getUserPlaylists(opts?: { offset?: string; limit?: number }) {
-        const params = new URLSearchParams();
-        if (opts?.limit) params.set("limit", String(opts.limit));
-        if (opts?.offset) params.set("offset", String(opts.offset));
-
-        const r = await fetch(`https://api.spotify.com/v1/me/playlists?${params.toString()}`, { headers: this.headers });
-        const data = await r.json();
-        const playlists: Playlist[] =
-            data.items.map((item: any) => ({
-                id: item.id,
-                name: item.name,
-                image: item.images[0]?.url,
-                trackLength: item.tracks.total,
-                description: item.description,
-                isPublic: item.public,
-                href: item.external_urls.spotify,
-                source: 'SPOTIFY',
-                status: 'success'
-            }));
-
-        return { items: playlists, next: data.next ? true : false };
-    };
-    async createPlaylist(name: string, opts?: { description?: string; public?: boolean }) {
-        // Need user id to create playlists
-        const me = await this.getCurrentUser();
-        const r = await fetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
-            method: "POST",
-            headers: { ...this.headers, "Content-Type": "application/json" },
-            body: JSON.stringify({ name, description: opts?.description ?? "", public: !!opts?.public }),
-        });
-        const p = await r.json();
-        const playlist: Playlist = {
-            id: p.id,
-            platform: Platform.SPOTIFY,
-            name: p.name,
-            owner: me.name,
-            trackCount: 0,
-            isPublic: p.public,
-            href: p.external_urls.spotify,
-            status: state.SUCCESS
-        };
-        return playlist;
-    }
-
-    async getPlaylistTracks(playlistId: string, opts?: { cursor?: string; limit?: number }) {
-        const params = new URLSearchParams();
-        if (opts?.limit) params.set("limit", String(opts.limit));
-        if (opts?.cursor) params.set("cursor", String(opts.cursor));
-
-        const r = await fetch(`/api/apple/playlists/${playlistId}/tracks?${params}`, { headers: this.headers });
-        const j = await r.json();
-
-        const items: Track[] = (j.items ?? []).map((t: any) => ({
-            id: t.id,
-            title: t.attributes?.name ?? "",
-            artist: t.attributes?.artistName ?? "",
-            album: t.attributes?.albumName ?? "",
-            durationMs: t.attributes?.durationInMillis ?? 0,
-            isrc: t.attributes?.isrc ?? "",
-        }));
-        return { items, next: j.next ?? undefined };
-    }
-
-    async addTracks(playlistId: string, trackIds: string[]) {
-        // Spotify URIs must be "spotify:track:{id}"
-        const uris = trackIds.map(id => `spotify:track:${id}`);
-        // Batch by 100
-        for (let i = 0; i < uris.length; i += 100) {
-            const chunk = uris.slice(i, i + 100);
-            await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-                method: "POST",
-                headers: { ...this.headers, "Content-Type": "application/json" },
-                body: JSON.stringify({ uris: chunk }),
-            });
-        }
-    }
-
-    async searchTrackByISRC(isrc: string) {
-        const url = `https://api.spotify.com/v1/search?q=isrc:${encodeURIComponent(isrc)}&type=track&limit=1`;
-        const r = await fetch(url, { headers: this.headers });
-        const j = await r.json();
-        return j?.tracks?.items?.[0]?.id ?? null;
-    }
+interface SpotifyPagingResponse<T> {
+  items: T[];
+  next?: string | null;
 }
+
+interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  images?: { url: string }[];
+  tracks: { total: number };
+  description?: string;
+  public: boolean;
+  owner?: { display_name?: string };
+  external_urls: { spotify: string };
+}
+
+interface SpotifyTrackItem {
+  track: {
+    id: string;
+    name: string;
+    duration_ms: number;
+    external_urls?: { spotify?: string };
+    artists?: { name?: string }[];
+    external_ids?: { isrc?: string };
+  } | null;
+}
+
+export class SpotifyClient implements IPlatformClient {
+  readonly platform = Platform.SPOTIFY;
+  private token = "";
+
+  setToken(token: string) {
+    this.token = token;
+  }
+
+  private get headers() {
+    return {
+      Authorization: `Bearer ${this.token}`,
+    };
+  }
+
+  private async fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
+    const response = await fetch(input, {
+      ...init,
+      headers: { ...this.headers, ...(init?.headers ?? {}) },
+    });
+    if (!response.ok) {
+      const error = new Error(`Spotify API error ${response.status}`);
+      (error as Error & { status?: number }).status = response.status;
+      throw error;
+    }
+    return response.json();
+  }
+
+  async getCurrentUser() {
+    const data = await this.fetchJson<{ id: string; display_name: string }>(
+      "https://api.spotify.com/v1/me"
+    );
+    return { id: data.id, name: data.display_name };
+  }
+
+  async getUserPlaylists(opts?: { offset?: string; limit?: number }) {
+    const params = new URLSearchParams();
+    if (opts?.limit) params.set("limit", String(opts.limit));
+    if (opts?.offset) params.set("offset", String(opts.offset));
+
+    const data = await this.fetchJson<SpotifyPagingResponse<SpotifyPlaylist>>(
+      `https://api.spotify.com/v1/me/playlists?${params.toString()}`
+    );
+
+    const playlists: Playlist[] = data.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      image: item.images?.[0]?.url,
+      trackCount: item.tracks.total,
+      description: item.description ?? undefined,
+      isPublic: item.public,
+      href: item.external_urls.spotify,
+      platform: Platform.SPOTIFY,
+      owner: item.owner?.display_name,
+      status: playlistState.SUCCESS,
+    }));
+
+    return { items: playlists, next: !!data.next };
+  }
+
+  async createPlaylist(name: string, opts?: { description?: string; isPublic?: boolean; image?: string }) {
+    const me = await this.getCurrentUser();
+    const body = {
+      name,
+      description: opts?.description ?? "",
+      public: opts?.isPublic ?? false,
+    };
+
+    const data = await this.fetchJson<SpotifyPlaylist>(
+      `https://api.spotify.com/v1/users/${me.id}/playlists`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const playlist: Playlist = {
+      id: data.id,
+      platform: Platform.SPOTIFY,
+      name: data.name,
+      owner: me.name,
+      trackCount: 0,
+      isPublic: data.public,
+      href: data.external_urls.spotify,
+      status: playlistState.SUCCESS,
+    };
+
+    return playlist;
+  }
+
+  async getPlaylistTracks(playlistId: string, opts?: { cursor?: string; limit?: number }) {
+    const params = new URLSearchParams();
+    if (opts?.limit) params.set("limit", String(opts.limit));
+    if (opts?.cursor) params.set("offset", String(opts.cursor));
+
+    const data = await this.fetchJson<SpotifyPagingResponse<SpotifyTrackItem>>(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?${params.toString()}`
+    );
+
+    const items: Track[] = (data.items ?? [])
+      .map((item) => item.track)
+      .filter((track): track is NonNullable<SpotifyTrackItem["track"]> => !!track)
+      .map((track) => ({
+        id: track.id,
+        title: track.name,
+        artist: track.artists?.[0]?.name ?? "",
+        durationMs: track.duration_ms,
+        href: track.external_urls?.spotify ?? "",
+        isrc: track.external_ids?.isrc,
+      }));
+
+    return { items, next: !!data.next };
+  }
+
+  async searchTrackByISRC(isrc: string, opts: { limit?: number } = {}) {
+    const params = new URLSearchParams();
+    params.set("q", `isrc:${encodeURIComponent(isrc)}`);
+    params.set("type", "track");
+    params.set("limit", String(opts.limit ?? 5));
+
+    const data = await this.fetchJson<{ tracks?: SpotifyPagingResponse<{ id: string; name: string; duration_ms: number; artists?: { name?: string }[]; external_urls?: { spotify?: string }; external_ids?: { isrc?: string } }> }>(
+      `https://api.spotify.com/v1/search?${params.toString()}`
+    );
+
+    const tracks = data.tracks?.items ?? [];
+    return tracks.map((track) => ({
+      id: track.id,
+      title: track.name,
+      artist: track.artists?.[0]?.name ?? "",
+      durationMs: track.duration_ms,
+      href: track.external_urls?.spotify ?? "",
+      isrc: track.external_ids?.isrc,
+    }));
+  }
+}
+

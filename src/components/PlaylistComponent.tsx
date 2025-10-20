@@ -29,11 +29,18 @@ const PlaylistComponent: React.FC<PlaylistComponentProps> = ({
       onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
   };
 
+  const handleDoubleClick = () => {
+    if (status !== state.PENDING && onAdd) {
+      onAdd({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
+    }
+  };
+
   return (
     <div
       ref={drag}
       className={`playlist-component ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
       onClick={handleClick} // On click will opened detailed view, future feature
+      onDoubleClick={handleDoubleClick}
     >
       <div>
         <img
