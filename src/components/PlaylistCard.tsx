@@ -2,17 +2,18 @@ import React from "react";
 import { Playlist } from "../types/playlist";
 import PlaceholderNoImage from "../assets/placeholders/300x300-noimage.png";
 import { useDrag, DragSourceMonitor } from "react-dnd";
-import "../css/PlaylistComponent.css";
 import { state } from "../types/status";
 
+import "../css/PlaylistCard.css";
+
 interface PlaylistComponentProps {
-  playlist: Playlist;
+  data: Playlist;
   onAdd?: (pl: Playlist) => void;
   onRemove?: (pl: Playlist) => void;
 }
 
 const PlaylistCard: React.FC<PlaylistComponentProps> = ({
-  playlist: { id, name, image, trackCount, status, platform, description, isPublic, href },
+  data: { id, name, image, trackCount, status, platform, description, isPublic, href },
   onAdd,
   onRemove,
 }) => {
