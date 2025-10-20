@@ -12,7 +12,7 @@ const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
     {playlists?.map((pl) => {
       return (<PlaylistCard
         key={pl.id}
-        playlist={pl}
+        data={pl}
         onAdd={onAdd}
         onRemove={onRemove}
       />)
