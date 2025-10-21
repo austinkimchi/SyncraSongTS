@@ -1,4 +1,4 @@
-import { API_FULL_URL, APP_FULL_URL } from "../config";
+import { API_FULL_URL, APP_FULL_URL } from "../AppConfig";
 import type { PlatformAuthService } from "./PlatformAuthService";
 
 declare const MusicKit: any;

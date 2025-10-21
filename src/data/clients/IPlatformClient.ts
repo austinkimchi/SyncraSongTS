@@ -25,24 +25,29 @@ export interface PlatformProfile {
 
 export abstract class PlatformClient {
   abstract readonly platform: Platform;
-  profile?: PlatformProfile;
+  abstract playlists?: Playlist[] | [];
+  abstract lastFetched?: Date | null;
+  abstract profile?: PlatformProfile;
 
   setToken?(token: string): void;
 
   getRefreshToken?(): Promise<string>;
 
   abstract isLoggedIn(): Promise<boolean>;
+  abstract login(): Promise<void>;
 
   abstract getDisplayName(): Promise<PlatformProfile>;
+  abstract getUserPlaylists(): Playlist[];
 
-  abstract getUserPlaylists(
+
+  abstract fetchUserPlaylists(
     opts?: PlaylistQueryOptions,
   ): Promise<{
     items: Playlist[];
     next?: boolean;
   }>;
 
-  abstract getPlaylistTracks(
+  abstract fetchPlaylistTracks(
     playlistId: string,
     opts?: PlaylistTracksQueryOptions,
   ): Promise<{

@@ -15,7 +15,7 @@ import { state } from "../types/status";
 const loggedIn = !!localStorage.getItem("token");
 
 interface PlaylistSectionProps {
-  playlists: Playlist[];
+  playlists: Playlist[] | Promise<Playlist[]>;
   platform: Platform;
   lastUpdated?: Date | null;
   onRefresh: () => void;
@@ -101,7 +101,7 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
       </header>
 
       <PlaylistCollection
-        playlists={playlists}
+        playlists={playlists as Playlist[]}
         status={state.PENDING}
         onAdd={(pl) => onAddToPending(pl, platform)}
         onRemove={() => { }}

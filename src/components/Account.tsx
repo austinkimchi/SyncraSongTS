@@ -17,7 +17,7 @@ import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
 import LoginIcon from "@mui/icons-material/Login";
 import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
 
-import { APP_FULL_URL } from "../config";
+import { APP_FULL_URL } from "../AppConfig";
 
 const buttonTheme = createTheme({
   typography: { fontFamily: "Fort" },

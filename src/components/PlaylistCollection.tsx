@@ -1,6 +1,6 @@
 import React from "react";
 import PlaylistCard from "./PlaylistCard";
-import { PlaylistCollectionProps } from "../types/playlist";
+import { Playlist, PlaylistCollectionProps } from "../types/playlist";
 
 const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
   playlists,

@@ -3,7 +3,7 @@ import { state } from "../../types/status";
 import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
 import { spotifyAuthService } from "../../handler/spotifyAPI";
-import { PlatformClient } from "./IPlatformClient";
+import { PlatformClient, PlatformProfile } from "./IPlatformClient";
 
 interface SpotifyPlaylistResponse {
   items: Array<{
@@ -50,6 +50,9 @@ interface SpotifyTrackSearchResponse {
 export class SpotifyClient extends PlatformClient {
   readonly platform = Platform.SPOTIFY;
   private token?: string;
+  profile?: PlatformProfile | undefined;
+  lastFetched: Date | null = null;
+  playlists?: Playlist[] | [];
 
   setToken(token: string): void {
     this.token = token;
@@ -87,13 +90,19 @@ export class SpotifyClient extends PlatformClient {
     return false;
   }
 
-  async getDisplayName() {
-    const response = await fetch("https://api.spotify.com/v1/me", { headers: this.headers });
-    const data = await response.json();
-    return { id: data.id as string, displayName: data.display_name as string };
+  async login(): Promise<void> {
+    await spotifyAuthService.redirectToOAuth();
   }
 
-  async getUserPlaylists(opts?: { offset?: string; limit?: number }) {
+  async getDisplayName() {
+    return this.profile ?? { id: "spotify_user", displayName: "Spotify User" };
+  }
+
+  getUserPlaylists(): Playlist[] {
+    return this.playlists ?? [];
+  }
+
+  async fetchUserPlaylists(opts?: { offset?: string; limit?: number }) {
     const params = new URLSearchParams();
     if (opts?.limit) params.set("limit", String(opts.limit));
     if (opts?.offset) params.set("offset", String(opts.offset));
@@ -114,6 +123,8 @@ export class SpotifyClient extends PlatformClient {
       owner: item.owner.display_name ?? undefined,
       status: state.SUCCESS,
     }));
+
+    this.lastFetched = new Date();
 
     return { items: playlists, next: data.next ? true : false };
   }
@@ -139,7 +150,7 @@ export class SpotifyClient extends PlatformClient {
     return playlist;
   }
 
-  async getPlaylistTracks(playlistId: string, opts?: { cursor?: string; limit?: number }) {
+  async fetchPlaylistTracks(playlistId: string, opts?: { cursor?: string; limit?: number }) {
     const params = new URLSearchParams();
     if (opts?.limit) params.set("limit", String(opts.limit));
     if (opts?.cursor) params.set("offset", String(opts.cursor));

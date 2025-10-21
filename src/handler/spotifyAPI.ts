@@ -1,4 +1,4 @@
-import { APP_FULL_URL, API_FULL_URL, SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from "../config";
+import { APP_FULL_URL, API_FULL_URL, SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from "../AppConfig";
 import Platform from "../types/platform";
 import type { PlatformAuthService } from "./PlatformAuthService";
 import { storePendingAccount } from "./pendingAccount";

@@ -7,21 +7,34 @@ import { PlatformClient } from "./IPlatformClient";
 
 export class AppleMusicClient extends PlatformClient {
   readonly platform = Platform.APPLE_MUSIC;
+  profile?: { id: string; displayName?: string };
+  playlists?: Playlist[] | [];
+  lastFetched: Date | null = null;
 
   constructor() {
     super();
     this.profile = undefined;
+    this.playlists = [];
   }
 
   async isLoggedIn(): Promise<boolean> {
     return appleMusicAuthService.isLoggedIn();
   }
 
+  async login(): Promise<void> {
+    await appleMusicAuthService.redirectToOAuth();
+  }
+
   async getDisplayName() {
     return { id: "apple_user", displayName: "Apple Music User" };
   }
 
-  async getUserPlaylists(_opts?: { offset?: string; limit?: number }) {
+  getUserPlaylists(): Playlist[] {
+    return this.playlists ?? [];
+  }
+
+  async fetchUserPlaylists(_opts?: { offset?: string; limit?: number }) {
+    this.lastFetched = new Date();
     return { items: [], next: false };
   }
 
@@ -43,7 +56,7 @@ export class AppleMusicClient extends PlatformClient {
     return;
   }
 
-  async getPlaylistTracks(_playlistId: string, _opts?: { cursor?: string; limit?: number }) {
+  async fetchPlaylistTracks(_playlistId: string, _opts?: { cursor?: string; limit?: number }) {
     return { items: [], next: false };
   }
 

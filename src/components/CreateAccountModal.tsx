@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { API_FULL_URL } from "../config";
+import { API_FULL_URL } from "../AppConfig";
 import Platform, { getPlatformDisplayName } from "../types/platform";
 import {
   PendingAccountInfo,
