@@ -64,5 +64,6 @@ export {
     getPlatformLogo,
     getPlatformDisplayName,
     getPlatformOAuthFunction,
-    getPlatformCallbackFunction
+    getPlatformCallbackFunction,
+    PLATFORMS
 }
