@@ -35,6 +35,7 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
       ref={drag}
       className={`playlist-component ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
       onClick={handleClick} // On click will opened detailed view, future feature
+      data-testid={`playlist-card-${id}`}
     >
       <div>
         <img
