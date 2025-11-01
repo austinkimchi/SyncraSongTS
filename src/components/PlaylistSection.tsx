@@ -12,7 +12,6 @@ import "../css/PlaylistSection.css";
 import Platform, { getPlatformLogo, getPlatformDisplayName } from "../types/platform";
 import { state } from "../types/status";
 
-const loggedIn = !!localStorage.getItem("token");
 
 interface PlaylistSectionProps {
   playlists: Playlist[];
@@ -44,6 +43,8 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
   const platforms = Object.values(Platform);
+
+  const loggedIn = !!localStorage.getItem("token");
 
   return (
     <div ref={drop} className={`playlist-section ${isOver && canDrop ? "over" : ""} p-4`}>
