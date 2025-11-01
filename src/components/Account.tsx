@@ -8,7 +8,7 @@ import {
   createTheme,
   ListItemIcon,
   ListItemText,
-  Divider,
+  Divider
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -17,7 +17,7 @@ import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
 import LoginIcon from "@mui/icons-material/Login";
 import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
 
-import { APP_FULL_URL } from "../config";
+import { API_FULL_URL, APP_FULL_URL } from "../config";
 
 const buttonTheme = createTheme({
   typography: { fontFamily: "Fort" },
@@ -37,15 +37,28 @@ const buttonTheme = createTheme({
 
 // Minimal fetch helper that always includes cookies
 async function api(path: string, init: RequestInit = {}) {
-  const res = await fetch(`${APP_FULL_URL}${path}`, {
-    credentials: "include",
+  if (!path.startsWith("/"))
+    path = `/${path}`;
+
+  const token = localStorage.getItem("token");
+  if (token) {
+    init.headers = {
+      ...(init.headers || {}),
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  const res = await fetch(`${API_FULL_URL}${path}`, {
+    credentials: "omit",
     ...init,
+
+
   });
   return res;
 }
 
 interface AccountInfo {
-  userId: string;
+  userID: string;
   displayName?: string;
   apple_status?: number;
   spotify_status?: number;
@@ -60,6 +73,18 @@ const Account: React.FC<AccountProps> = ({ }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [error, setError] = useState<string>("");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      return savedTheme;
+    }
+    // Default to browser preference
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const defaultTheme = prefersDark ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", defaultTheme);
+    return defaultTheme;
+  });
 
   const open = Boolean(anchorEl);
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
@@ -79,19 +104,20 @@ const Account: React.FC<AccountProps> = ({ }) => {
 
   const fetchSessionAndInfo = useCallback(async () => {
     try {
-      const sessRes = await api("/auth/session");
-      if (!sessRes.ok) {
-        setAccount(null);
-        return;
-      }
+      // const sessRes = await api("/auth/session");
+      // if (!sessRes.ok) {
+      //   setAccount(null);
+      //   return;
+      // }
 
       const infoRes = await api("/auth/users/info");
       if (!infoRes.ok) {
         setAccount(null);
         return;
       }
-      const data: AccountInfo = await infoRes.json();
+      const data: AccountInfo = await infoRes.json().then(res => res.user);
       setAccount(data);
+      console.log("Fetched account info:", data);
       setError("");
     } catch (e) {
       setError("Failed to load account. Servers may not be responding.");
@@ -116,6 +142,9 @@ const Account: React.FC<AccountProps> = ({ }) => {
     localStorage.removeItem("user_data");
     localStorage.removeItem("apple-playlists");
     localStorage.removeItem("spotify-playlists");
+    localStorage.removeItem("token");
+    localStorage.removeItem("spotify-profile");
+    sessionStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
     // Soft refresh to reset any protected views
     setTimeout(() => window.location.reload(), 150);
@@ -146,23 +175,36 @@ const Account: React.FC<AccountProps> = ({ }) => {
     </>
   );
 
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      console.log("Toggling theme from", prev);
+      const newTheme = prev === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      return newTheme;
+    });
+  };
+
   // Menu content when logged in: settings / theme / logout
   const AuthedMenu = (
     <>
       <MenuItem disabled>
         <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
         <ListItemText
-          primary={account?.displayName || account?.userId || "Account"}
+          primary={account?.displayName || account?.userID || "Account"}
           secondary={(account?.providers || []).join(", ")}
         />
       </MenuItem>
       <Divider />
+
       <MenuItem onClick={handleMenuClose}>
         <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
         <ListItemText primary="Settings" />
       </MenuItem>
-      <MenuItem onClick={handleMenuClose}>
-        <ListItemIcon><BrightnessMediumIcon fontSize="small" /></ListItemIcon>
+
+      <MenuItem onClick={toggleTheme}>
+        <ListItemIcon><BrightnessMediumIcon fontSize="small" /> </ListItemIcon>
+        <ListItemText primary={theme == "dark" ? "Light Mode" : "Dark Mode"} />
       </MenuItem>
       <Divider />
       <MenuItem
@@ -188,7 +230,9 @@ const Account: React.FC<AccountProps> = ({ }) => {
   return (
     <ThemeProvider theme={buttonTheme}>
       <IconButton onClick={handleMenuOpen} color="inherit" aria-label="account">
-        <AccountCircleIcon />
+        <div data-testid="account-avatar">
+          <AccountCircleIcon />
+        </div>
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
         {account ? AuthedMenu : UnauthedMenu}
