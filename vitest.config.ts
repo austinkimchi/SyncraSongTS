@@ -15,7 +15,7 @@ export default defineConfig({
       instances: [
         { browser: 'chromium' },
       ]
-    },
+    }
   },
   server: {
     port: 80,

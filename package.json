@@ -10,7 +10,7 @@
     "preview": "vite preview --port 80",
     "test": "vitest --config=vitest.config.ts",
     "test:browser": "vitest --config=vitest.browser.config.ts",
-    "setup": "npm install && npx vistest init browser"
+    "setup": "npx vistest init browser"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
