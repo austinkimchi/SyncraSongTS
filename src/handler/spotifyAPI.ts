@@ -151,7 +151,7 @@ class SpotifyAuthService implements PlatformAuthService {
       clientToken = await fetch(`${API_FULL_URL}/api/spotify/setToken`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ accessToken: token, userID }),
+        body: JSON.stringify({ accessToken: token, userID: userID }),
       });
     } catch (error) {
       console.error("Failed to set Spotify access token", error);
@@ -172,7 +172,7 @@ class SpotifyAuthService implements PlatformAuthService {
       return;
     }
 
-    let data: { client_token?: string; token?: string } = {};
+    let data: { token?: string } = {};
     try {
       data = await clientToken.json();
     } catch (error) {
@@ -180,7 +180,7 @@ class SpotifyAuthService implements PlatformAuthService {
       return;
     }
 
-    const clientAuthToken = data.client_token ?? data.token;
+    const clientAuthToken = data.token;
     if (clientAuthToken) {
       localStorage.setItem("token", clientAuthToken);
       window.dispatchEvent(new Event("auth-changed"));
