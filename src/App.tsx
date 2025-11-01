@@ -5,7 +5,6 @@ import DarkLogo from "./assets/logo/logo-dark.svg";
 import PlaylistSection from "./components/PlaylistSection";
 import PendingSection from "./components/PendingSection";
 import Account from "./components/Account";
-import ThemeToggle from "./components/ThemeToggle";
 import CreateAccountModal from "./components/CreateAccountModal";
 
 
@@ -17,6 +16,8 @@ import { } from "./handler/callback"; // just run on import
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
+import { SpotifyClient } from "./data/clients/SpotifyClient";
+import { AppleMusicClient } from "./data/clients/AppleMusicClient";
 import {
   PendingAccountInfo,
   getPendingAccount,
@@ -43,10 +44,14 @@ const App: React.FC = () => {
   });
 
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => !localStorage.getItem("token"));
+  // initialize clients
+  const appleClient = getClient(Platform.APPLE_MUSIC) as AppleMusicClient;
+  const spotifyClient = getClient(Platform.SPOTIFY) as SpotifyClient;
 
   // fetch playlists via IPlatformClient (no hardcoding)
   const fetchPlaylists = useCallback(async (platform: Platform) => {
     const client = getClient(platform);
+    console.log(client)
     if (!client) return;
     const loggedIn = await client.profile?.id ? true : false;
     if (!loggedIn) return;
@@ -59,17 +64,14 @@ const App: React.FC = () => {
     setLastUpdated((prev) => ({
       ...prev,
       [platform]: new Date(),
-    })
-    );
-  },
-    []
-  );
+    }));
+  }, []);
 
   // Set demo mode on/off
   useEffect(() => {
     if (localStorage.getItem("spotify-profile"))
       setIsDemoMode(false);
-    console.log("Demo mode:", isDemoMode);
+
     if (isDemoMode) {
       setPlaylists({
         [Platform.APPLE_MUSIC]: DEMO_PLAYLISTS_APPLE,
@@ -108,22 +110,12 @@ const App: React.FC = () => {
     setPendingDisplayedOn(null);
   };
 
-  // ---------- Theme Handling ----------
-  const defaultTheme =
-    (localStorage.getItem("theme") as "light" | "dark") ||
-    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  const [theme, setTheme] = useState<"light" | "dark">(defaultTheme);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
   useEffect(() => {
     const handlePendingAccountChange = () => {
       const info = getPendingAccount();
       setPendingAccount(info);
       setShowCreateAccount(info !== null);
+      setIsDemoMode(false);
     };
 
     const unsubscribe = subscribeToPendingAccount(handlePendingAccountChange);
@@ -149,14 +141,14 @@ const App: React.FC = () => {
 
 
   return (
-    <div>
+    <div data-testid="app-container">
       <nav className="navbar">
         <div className="flex-1" />
         <a href="#" className="flex-1 text-center m-0! place-items-center">
           <img src={DarkLogo} alt="logo" id="logo" className="w-32 h-i padding-0 align-center" />
         </a>
         <div className="flex flex-1 justify-end gap-[0.5rem]">
-          <ThemeToggle theme={theme} toggle={() => setTheme((t) => (t === "light" ? "dark" : "light"))} />
+
           <Account />
         </div>
       </nav>
