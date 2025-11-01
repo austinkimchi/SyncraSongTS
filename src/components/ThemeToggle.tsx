@@ -7,7 +7,9 @@ interface ThemeToggleProps {
 }
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, toggle }) => (
-  <Switch checked={theme === "dark"} onChange={toggle} />
+  <div data-testid="theme-toggle-button">
+    <Switch checked={theme === "dark"} onChange={toggle} />
+  </div>
 );
 
 export default ThemeToggle;
