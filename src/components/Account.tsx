@@ -190,6 +190,12 @@ const Account: React.FC<AccountProps> = ({ }) => {
     localStorage.removeItem("spotify-playlists");
     localStorage.removeItem("token");
     localStorage.removeItem("spotify-profile");
+    localStorage.removeItem("providers");
+    for (let local of Object.keys(localStorage)) {
+      if (local.startsWith("music")) {
+        localStorage.removeItem(local);
+      }
+    }
     spotifyAuthService.setStoredProfile(null);
     sessionStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
