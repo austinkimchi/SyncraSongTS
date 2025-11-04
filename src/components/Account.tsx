@@ -14,10 +14,10 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
-import LoginIcon from "@mui/icons-material/Login";
 import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
 
-import { API_FULL_URL, APP_FULL_URL } from "../config";
+import { API_FULL_URL } from "../config";
+import { spotifyAuthService } from "../handler/spotifyAPI";
 
 const buttonTheme = createTheme({
   typography: { fontFamily: "Fort" },
@@ -37,22 +37,19 @@ const buttonTheme = createTheme({
 
 // Minimal fetch helper that always includes cookies
 async function api(path: string, init: RequestInit = {}) {
-  if (!path.startsWith("/"))
+  if (!path.startsWith("/")) {
     path = `/${path}`;
+  }
 
   const token = localStorage.getItem("token");
-  if (token) {
-    init.headers = {
-      ...(init.headers || {}),
-      Authorization: `Bearer ${token}`,
-    };
-  }
+  const headers = new Headers(init.headers ?? undefined);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
 
   const res = await fetch(`${API_FULL_URL}${path}`, {
     credentials: "omit",
     ...init,
-
-
+    headers,
   });
   return res;
 }
@@ -60,14 +57,25 @@ async function api(path: string, init: RequestInit = {}) {
 interface AccountInfo {
   userID: string;
   displayName?: string;
-  apple_status?: number;
-  spotify_status?: number;
-  soundcloud_status?: number;
   providers?: Platform[];
 }
 
 interface AccountProps {
 }
+
+const mapProviderToPlatform = (provider: string): Platform | null => {
+  switch (provider) {
+    case "spotify":
+      return Platform.SPOTIFY;
+    case "apple_music":
+    case "apple":
+      return Platform.APPLE_MUSIC;
+    case "soundcloud":
+      return Platform.SOUNDCLOUD;
+    default:
+      return null;
+  }
+};
 
 const Account: React.FC<AccountProps> = ({ }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -101,27 +109,63 @@ const Account: React.FC<AccountProps> = ({ }) => {
       return;
     }
   };
+  interface InfoPayload {
+    jwt: { expiresAt: EpochTimeStamp; expiresIn: number };
+    userId: string;
+    oauth: Array<{ provider: Platform; providerId: string }>;
+  }
 
   const fetchSessionAndInfo = useCallback(async () => {
     try {
-      // const sessRes = await api("/auth/session");
-      // if (!sessRes.ok) {
-      //   setAccount(null);
-      //   return;
-      // }
-
-      const infoRes = await api("/auth/users/info");
-      if (!infoRes.ok) {
+      const infoRes = await api("/auth/info");
+      if (infoRes.status === 401 || !infoRes.ok) {
         setAccount(null);
+        spotifyAuthService.setStoredProfile(null);
         return;
       }
-      const data: AccountInfo = await infoRes.json().then(res => res.user);
-      setAccount(data);
-      console.log("Fetched account info:", data);
+
+      const payload = await infoRes.json() as InfoPayload;
+      if (!payload || !payload.userId || payload.userId.length === 0 || !payload.oauth) {
+        setAccount(null);
+        spotifyAuthService.setStoredProfile(null);
+        return;
+      }
+
+      const { oauth, userId, jwt } = payload
+
+      const providers: Platform[] = [];
+      for (const entry of oauth) {
+        const plat = mapProviderToPlatform(entry.provider);
+        if (plat) providers.push(plat);
+      }
+
+      const accountInfo: AccountInfo = {
+        userID: userId,
+        providers,
+        displayName: userId
+      };
+
+      setAccount(accountInfo);
+
+      const spotifyOauth = Array.isArray(oauth)
+        ? oauth.find((entry: { provider: string }) => entry.provider === "spotify")
+        : oauth['spotify']
+          ? oauth
+          : undefined;
+
+      if (spotifyOauth && spotifyOauth.providerId) {
+        spotifyAuthService.setStoredProfile({
+          id: spotifyOauth.providerId,
+          display_name: accountInfo.displayName ?? accountInfo.userID,
+        });
+      } else {
+        spotifyAuthService.setStoredProfile(null);
+      }
       setError("");
     } catch (e) {
       setError("Failed to load account. Servers may not be responding.");
       setAccount(null);
+      spotifyAuthService.setStoredProfile(null);
     }
   }, []);
 
@@ -144,6 +188,7 @@ const Account: React.FC<AccountProps> = ({ }) => {
     localStorage.removeItem("spotify-playlists");
     localStorage.removeItem("token");
     localStorage.removeItem("spotify-profile");
+    spotifyAuthService.setStoredProfile(null);
     sessionStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
     // Soft refresh to reset any protected views
@@ -153,11 +198,6 @@ const Account: React.FC<AccountProps> = ({ }) => {
   // Menu content when NOT logged in: show Login with <providers>
   const UnauthedMenu = (
     <>
-      <MenuItem>
-        <ListItemIcon><LoginIcon fontSize="small" /></ListItemIcon>
-        <ListItemText primary="Legacy Login" />
-      </MenuItem>
-      <Divider />
       {(Object.values(Platform) as Array<(typeof Platform)[keyof typeof Platform]>).map(p => (
         <MenuItem key={p} onClick={() => { handleMenuClose(); startOAuth(p); }}>
           <img src={getPlatformLogo(p)} alt={getPlatformDisplayName(p)} className="w-[20px] aspect-square mr-[16px]" />
@@ -192,7 +232,7 @@ const Account: React.FC<AccountProps> = ({ }) => {
         <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
         <ListItemText
           primary={account?.displayName || account?.userID || "Account"}
-          secondary={(account?.providers || []).join(", ")}
+          secondary={(account?.providers || []).map((provider) => getPlatformDisplayName(provider)).join(", ")}
         />
       </MenuItem>
       <Divider />
