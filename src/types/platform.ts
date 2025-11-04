@@ -6,6 +6,8 @@ import { handleAppleCallback, redirectToAppleOAuth } from "../handler/appleAPI";
 import { IPlatformClient } from "../data/clients/IPlatformClient";
 import { SpotifyClient } from "../data/clients/SpotifyClient";
 import { AppleMusicClient } from "../data/clients/AppleMusicClient";
+import { handleSoundCloudCallback, redirectToSoundCloudOAuth } from "../handler/soundAPI";
+import { SoundCloudClient } from "../data/clients/SoundCloudClient";
 
 enum Platform {
     SPOTIFY = "spotify",
@@ -48,7 +50,9 @@ const PLATFORMS: Record<Platform, PlatformInfo> = {
         displayName: "SoundCloud",
         loginLabel: "Sign in with SoundCloud",
         logo: SoundCloudLogo,
-        OAuthFunction: async () => {},
+        OAuthFunction: redirectToSoundCloudOAuth,
+        CallbackFunction: handleSoundCloudCallback,
+        client: SoundCloudClient
     },
 };
 

@@ -1,6 +1,6 @@
 import { API_FULL_URL } from "../config";
 import Platform from "../types/platform";
-import type { PlatformAuthService } from "./PlatformAuthService";
+import type { OAuthCallbackResponse, PlatformAuthService } from "./PlatformAuthService";
 import { storePendingAccount, clearPendingAccount } from "./pendingAccount";
 
 interface OAuthLinkResponse {
@@ -13,12 +13,6 @@ interface SpotifyAccountProfile {
   display_name?: string | null;
 }
 
-interface OAuthCallbackResponse {
-  info?: string;
-  jwt?: string;
-  userId?: { _id: string } | string;
-  state?: string;
-}
 
 const PROFILE_STORAGE_KEY = "spotify-profile";
 const STATE_STORAGE_KEY = "spotify-oauth-state";
