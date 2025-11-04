@@ -160,6 +160,11 @@ const App: React.FC = () => {
   useEffect(() => { rightLink.check(); }, [rightPanelPlatform]);
   return (
     <div data-testid="app-container">
+      {isDemoMode && (
+        <div className="demo-mode-banner p-2">
+          <strong>Demo Mode:</strong> You are viewing demo playlists.
+        </div>
+      )}
       <nav className="navbar">
         <div className="flex-1" />
         <a href="#" className="flex-1 text-center m-0! place-items-center">
@@ -181,7 +186,7 @@ const App: React.FC = () => {
             if (p === rightPanelPlatform) setRightPanelPlatform(leftPanelPlatform);
             setLeftPanelPlatform(p);
           }}
-          linked={leftLink.status.linked}
+          linked={isDemoMode ? true : leftLink.status.linked}
           needsScopeUpgrade={!!leftLink.status.needsScopeUpgrade}
           onConnect={() => handleConnect(leftPanelPlatform)}
           onReauthorize={() => handleReauthorize(leftPanelPlatform)}
@@ -206,7 +211,7 @@ const App: React.FC = () => {
             if (p === leftPanelPlatform) setLeftPanelPlatform(rightPanelPlatform);
             setRightPanelPlatform(p);
           }}
-          linked={rightLink.status.linked}
+          linked={isDemoMode ? true : rightLink.status.linked}
           needsScopeUpgrade={!!rightLink.status.needsScopeUpgrade}
           onConnect={() => handleConnect(rightPanelPlatform)}
           onReauthorize={() => handleReauthorize(rightPanelPlatform)}
