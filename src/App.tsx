@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import DarkLogo from "./assets/logo/logo-dark.svg";
 
 // Components
@@ -7,14 +7,13 @@ import PendingSection from "./components/PendingSection";
 import Account from "./components/Account";
 import CreateAccountModal from "./components/CreateAccountModal";
 
-
-// Types and helpers
+// Types & helpers
 import type { Playlist } from "./types/playlist";
 import Platform from "./types/platform";
 import { state } from "./types/status";
-import { } from "./handler/callback"; // just run on import
+import { } from "./handler/callback"; // runs on import
 
-import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY } from "./data/demoPlaylists";
+import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY, DEMO_PLAYLISTS_SOUNDCLOUD } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
 import { SpotifyClient } from "./data/clients/SpotifyClient";
 import { AppleMusicClient } from "./data/clients/AppleMusicClient";
@@ -26,34 +25,32 @@ import {
 
 import "./css/App.css";
 
-const providerKey = (p: Platform): Platform =>
-  p === Platform.APPLE_MUSIC ? Platform.APPLE_MUSIC : Platform.SPOTIFY;
-
-// App component
 const App: React.FC = () => {
-  // TODO: Update for more panels in the future
+  // Platform left/right panels
+  const [leftPanelPlatform, setLeftPanelPlatform] = useState<Platform>(Platform.APPLE_MUSIC);
+  const [rightPanelPlatform, setRightPanelPlatform] = useState<Platform>(Platform.SPOTIFY);
+
+  // Playlists keyed by platform
   const [playlists, setPlaylists] = useState<Partial<Record<Platform, Playlist[]>>>({});
-  const [pendingPlaylists, setPendingPlaylists] = useState<Playlist[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<Partial<Record<Platform, Date>>>({});
+
+  // Pending playlists
   const [pendingDisplayedOn, setPendingDisplayedOn] = useState<Platform | null>(null);
+  const [pendingPlaylists, setPendingPlaylists] = useState<Playlist[]>([]);
+
+  // Account creation modal state
   const [pendingAccount, setPendingAccount] = useState<PendingAccountInfo | null>(() => getPendingAccount());
   const [showCreateAccount, setShowCreateAccount] = useState<boolean>(() => getPendingAccount() !== null);
 
-  const [lastUpdated, setLastUpdated] = useState<{ apple: Date | null; spotify: Date | null }>({
-    apple: null,
-    spotify: null,
-  });
+  // Derived auth state
+  const isDemoMode = useMemo(() => !localStorage.getItem("token"), [localStorage.getItem("token")]);
 
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => !localStorage.getItem("token"));
-  // initialize clients
-  const appleClient = getClient(Platform.APPLE_MUSIC) as AppleMusicClient;
-  const spotifyClient = getClient(Platform.SPOTIFY) as SpotifyClient;
-
+  // --- Auth + pending account events ---
   useEffect(() => {
     const handlePendingAccountChange = () => {
       const info = getPendingAccount();
       setPendingAccount(info);
-      setShowCreateAccount(info !== null);
-      setIsDemoMode(false);
+      setShowCreateAccount(!!info);
     };
 
     const unsubscribe = subscribeToPendingAccount(handlePendingAccountChange);
@@ -66,95 +63,67 @@ const App: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const handleAuthChange = () => {
-      setIsDemoMode(!localStorage.getItem("token"));
-    };
-
-    window.addEventListener("auth-changed", handleAuthChange);
-    handleAuthChange();
-
-    return () => {
-      window.removeEventListener("auth-changed", handleAuthChange);
-    };
-  }, []);
-
-  // fetch playlists via IPlatformClient (no hardcoding)
-  const fetchPlaylists = useCallback(async (platform: Platform, opt?: { fetch: boolean }) => {
-    const client = getClient(platform);
-    if (!client) return;
-    let loggedIn = false;
+  // Fetch playlists
+  const fetchPlaylists = useCallback(async (platform: Platform, options?: { force?: boolean }) => {
     try {
-      loggedIn = await client.isLoggedIn();
-    } catch (error) {
-      console.error(`Failed to determine ${platform} login status`, error);
-      loggedIn = false;
-    }
-    if (!loggedIn) return;
+      const client = getClient(platform);
+      if (!client) return;
 
-    const res = await client.getUserPlaylists({ fetch: opt?.fetch ?? false });
-    setPlaylists((prev) => ({
-      ...prev,
-      [platform]: res.items,
-    }));
-    setLastUpdated((prev) => ({
-      ...prev,
-      [platform]: new Date(),
-    }));
+      // TODO(reauth): if not logged in, surface a connect/reauthorize prompt instead
+      const loggedIn = await client.isLoggedIn().catch(() => false);
+      if (!loggedIn) return;
+
+      const res = await client.getUserPlaylists({ fetch: !!options?.force });
+      setPlaylists((prev) => ({ ...prev, [platform]: res.items }));
+      setLastUpdated((prev) => ({ ...prev, [platform]: new Date() }));
+    } catch (err) {
+      console.error(`Failed to fetch playlists for ${platform}`, err);
+    }
   }, []);
 
-  // Set demo mode on/off
+  // Demo mode/real data toggle
   useEffect(() => {
     if (isDemoMode) {
       setPlaylists({
         [Platform.APPLE_MUSIC]: DEMO_PLAYLISTS_APPLE,
         [Platform.SPOTIFY]: DEMO_PLAYLISTS_SPOTIFY,
+        [Platform.SOUNDCLOUD]: DEMO_PLAYLISTS_SOUNDCLOUD
       });
-      setLastUpdated({ apple: null, spotify: null });
-      setPendingPlaylists([]);
+      setLastUpdated({});
       setPendingDisplayedOn(null);
+      setPendingPlaylists([]);
       return;
     }
-    setPendingDisplayedOn(null);
-    setPlaylists({});
 
-    // Fetch real data
+    // Real data
+    setPlaylists({});
+    setPendingDisplayedOn(null);
     fetchPlaylists(Platform.APPLE_MUSIC);
     fetchPlaylists(Platform.SPOTIFY);
   }, [isDemoMode, fetchPlaylists]);
 
-  // ---------- Helper Functions for Pending Section ----------
-  const handleAddToPending = (pl: Playlist, destination: Platform) => {
-    setPendingPlaylists((prev) =>
-      prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.PENDING }]
-    );
-    setPendingDisplayedOn(providerKey(destination));
-  };
+  // Pending helpers
+  const addToPending = useCallback((pl: Playlist, destination: Platform) => {
+    setPendingPlaylists((prev) => (prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.PENDING }]));
+    setPendingDisplayedOn(destination);
+  }, []);
 
-  const handleRemoveFromPending = (playlist: Playlist) => {
-    setPendingPlaylists((prev) => prev.filter((p) => p.id !== playlist.id));
-    if (pendingPlaylists.length == 1) {
-      setPendingDisplayedOn(null);
-    }
-  };
+  const removeFromPending = useCallback((pl: Playlist) => {
+    setPendingPlaylists((prev) => prev.filter((p) => p.id !== pl.id));
+    setPendingDisplayedOn((prevSide) => {
+      const willBeEmpty = pendingPlaylists.length <= 1; // using current closure value
+      return willBeEmpty ? null : prevSide;
+    });
+  }, [pendingPlaylists.length]);
 
-  const handleCancel = () => {
+  const cancelPending = useCallback(() => {
     setPendingPlaylists([]);
     setPendingDisplayedOn(null);
-  };
+  }, []);
 
-
-  useEffect(() => {
-    if (showCreateAccount) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-    return undefined;
-  }, [showCreateAccount]);
-
+  // Render helpers
+  const leftPlaylists = playlists[leftPanelPlatform] ?? [];
+  const rightPlaylists = playlists[rightPanelPlatform] ?? [];
 
   return (
     <div data-testid="app-container">
@@ -164,50 +133,65 @@ const App: React.FC = () => {
           <img src={DarkLogo} alt="logo" id="logo" className="w-32 h-i padding-0 align-center" />
         </a>
         <div className="flex flex-1 justify-end gap-[0.5rem]">
-
           <Account />
         </div>
       </nav>
 
       <div className="flex flex-row">
+        {/* LEFT PANEL */}
         <PlaylistSection
-          platform={Platform.APPLE_MUSIC}
-          playlists={pendingDisplayedOn === "apple" ? [] : (playlists.apple || [])}
-          onAddToPending={handleAddToPending}
-          onRefresh={() => fetchPlaylists(Platform.APPLE_MUSIC, { fetch: true })}
-          lastUpdated={lastUpdated.apple}
+          platform={leftPanelPlatform}
+          playlists={pendingDisplayedOn === leftPanelPlatform ? [] : leftPlaylists}
+          lastUpdated={lastUpdated[leftPanelPlatform]}
+          onRefresh={() => fetchPlaylists(leftPanelPlatform, { force: true })}
+          onAddToPending={addToPending}
+          onChangePlatform={(p) => { // prevent same providers on both sides (auto-swap)
+            if (p === rightPanelPlatform) {
+              setRightPanelPlatform(leftPanelPlatform);
+            }
+            setLeftPanelPlatform(p);
+          }}
         >
-
-          {pendingDisplayedOn === "apple" && (
+          {pendingDisplayedOn === leftPanelPlatform && (
             <PendingSection
               playlists={pendingPlaylists}
-              onCommit={() => { }} // TODO: implement
-              onRemoveAll={handleCancel}
-              onRemove={handleRemoveFromPending}
+              onCommit={() => { /* TODO: implement transfer action */ }}
+              onRemoveAll={cancelPending}
+              onRemove={removeFromPending}
             />
           )}
         </PlaylistSection>
 
+        {/* RIGHT PANEL */}
         <PlaylistSection
-          platform={Platform.SPOTIFY}
-          playlists={pendingDisplayedOn === Platform.SPOTIFY ? [] : (playlists.spotify || [])}
-          onAddToPending={handleAddToPending}
-          onRefresh={() => fetchPlaylists(Platform.SPOTIFY, { fetch: true })}
-          lastUpdated={lastUpdated.spotify}
+          platform={rightPanelPlatform}
+          playlists={pendingDisplayedOn === rightPanelPlatform ? [] : rightPlaylists}
+          lastUpdated={lastUpdated[rightPanelPlatform]}
+          onRefresh={() => fetchPlaylists(rightPanelPlatform, { force: true })}
+          onAddToPending={addToPending}
+          onChangePlatform={(p) => {
+            if (p === leftPanelPlatform) {
+              setLeftPanelPlatform(rightPanelPlatform);
+            }
+            setRightPanelPlatform(p);
+          }}
         >
-
-          {pendingDisplayedOn === Platform.SPOTIFY && (
+          {pendingDisplayedOn === rightPanelPlatform && (
             <PendingSection
               playlists={pendingPlaylists}
-              onCommit={() => { }} // TODO: implement
-              onRemoveAll={handleCancel}
-              onRemove={handleRemoveFromPending}
+              onCommit={() => { /* TODO: implement transfer action */ }}
+              onRemoveAll={cancelPending}
+              onRemove={removeFromPending}
             />
           )}
         </PlaylistSection>
       </div>
 
-      {showCreateAccount && pendingAccount && <CreateAccountModal pendingAccount={pendingAccount} />}
+      {/* TODO(reauth): show a lightweight banner/modal if a panel's client isn't linked */}
+
+      {showCreateAccount && pendingAccount && (
+        <CreateAccountModal pendingAccount={pendingAccount} />
+      )}
     </div>
   );
 };

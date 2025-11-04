@@ -98,55 +98,6 @@ export const DEMO_PLAYLISTS_APPLE: Playlist[] = [
     platform: Platform.APPLE_MUSIC,
     status: state.SUCCESS,
     owner: "N/A"
-  },
-
-  {
-    id: "3MCKUvRdc5jQ4vXh89YGkU",
-    name: "lol. k.",
-    image: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da84a78c1900f81b4b2d982bab7c",
-    trackCount: 611,
-    description: "",
-    isPublic: true,
-    href: "https://open.spotify.com/playlist/3MCKUvRdc5jQ4vXh89YGkU",
-    platform: Platform.APPLE_MUSIC,
-    status: state.SUCCESS,
-    owner: "N/A"
-  },
-  {
-    id: "2ZQRscCoonXgsCp6fojk92",
-    name: "void",
-    image: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8491ca357f058b9383cb141cbe",
-    trackCount: 244,
-    description: "",
-    isPublic: true,
-    href: "https://open.spotify.com/playlist/2ZQRscCoonXgsCp6fojk92",
-    platform: Platform.APPLE_MUSIC,
-    status: state.SUCCESS,
-    owner: "N/A"
-  },
-  {
-    id: "4nmxkJj6J0dmGtumQZqdWu",
-    name: "transpire",
-    image: "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84aee5b55b93419b360a0d7416",
-    trackCount: 85,
-    description: "in the moment inspiration playlist",
-    isPublic: false,
-    href: "https://open.spotify.com/playlist/4nmxkJj6J0dmGtumQZqdWu",
-    platform: Platform.APPLE_MUSIC,
-    status: state.SUCCESS,
-    owner: "N/A"
-  },
-  {
-    id: "7khYXjFxX3YnBMwntW4WHp",
-    name: "coast line",
-    image: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8459d626191d4268189c89c595",
-    trackCount: 145,
-    description: "melodic edm 🤷‍♂️",
-    isPublic: true,
-    href: "https://open.spotify.com/playlist/7khYXjFxX3YnBMwntW4WHp",
-    platform: Platform.APPLE_MUSIC,
-    status: state.SUCCESS,
-    owner: "N/A"
   }
 ];
 
@@ -246,7 +197,11 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     platform: Platform.SPOTIFY,
     status: state.SUCCESS,
     owner: "N/A"
-  },
+  }
+];
+
+
+export const DEMO_PLAYLISTS_SOUNDCLOUD: Playlist[] = [
   {
     id: "760HL7SP8NkIFGLg85BZER",
     name: "down",
@@ -295,4 +250,52 @@ export const DEMO_PLAYLISTS_SPOTIFY: Playlist[] = [
     status: state.SUCCESS,
     owner: "N/A"
   },
+  {
+    id: "3MCKUvRdc5jQ4vXh89YGkU",
+    name: "lol. k.",
+    image: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da84a78c1900f81b4b2d982bab7c",
+    trackCount: 611,
+    description: "",
+    isPublic: true,
+    href: "https://open.spotify.com/playlist/3MCKUvRdc5jQ4vXh89YGkU",
+    platform: Platform.APPLE_MUSIC,
+    status: state.SUCCESS,
+    owner: "N/A"
+  },
+  {
+    id: "2ZQRscCoonXgsCp6fojk92",
+    name: "void",
+    image: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8491ca357f058b9383cb141cbe",
+    trackCount: 244,
+    description: "",
+    isPublic: true,
+    href: "https://open.spotify.com/playlist/2ZQRscCoonXgsCp6fojk92",
+    platform: Platform.APPLE_MUSIC,
+    status: state.SUCCESS,
+    owner: "N/A"
+  },
+  {
+    id: "4nmxkJj6J0dmGtumQZqdWu",
+    name: "transpire",
+    image: "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84aee5b55b93419b360a0d7416",
+    trackCount: 85,
+    description: "in the moment inspiration playlist",
+    isPublic: false,
+    href: "https://open.spotify.com/playlist/4nmxkJj6J0dmGtumQZqdWu",
+    platform: Platform.APPLE_MUSIC,
+    status: state.SUCCESS,
+    owner: "N/A"
+  },
+  {
+    id: "7khYXjFxX3YnBMwntW4WHp",
+    name: "coast line",
+    image: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8459d626191d4268189c89c595",
+    trackCount: 145,
+    description: "melodic edm 🤷‍♂️",
+    isPublic: true,
+    href: "https://open.spotify.com/playlist/7khYXjFxX3YnBMwntW4WHp",
+    platform: Platform.APPLE_MUSIC,
+    status: state.SUCCESS,
+    owner: "N/A"
+  }
 ];
