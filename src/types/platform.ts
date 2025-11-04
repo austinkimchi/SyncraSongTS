@@ -9,7 +9,7 @@ import { AppleMusicClient } from "../data/clients/AppleMusicClient";
 
 enum Platform {
     SPOTIFY = "spotify",
-    APPLE_MUSIC = "apple",
+    APPLE_MUSIC = "apple_music",
     SOUNDCLOUD = "soundcloud"
 }
 
@@ -17,7 +17,7 @@ interface PlatformInfo {
     displayName: string;
     loginLabel: string;
     logo: string;
-    OAuthFunction?: () => Promise<void>;
+    OAuthFunction: () => Promise<void>;
     CallbackFunction?: () => Promise<void>;
     scopes?: string[];
     client?: new () => IPlatformClient;
@@ -48,14 +48,14 @@ const PLATFORMS: Record<Platform, PlatformInfo> = {
         displayName: "SoundCloud",
         loginLabel: "Sign in with SoundCloud",
         logo: SoundCloudLogo,
-        OAuthFunction: undefined,
+        OAuthFunction: async () => {},
     },
 };
 
 const getPlatformInfo = (p: Platform): PlatformInfo => PLATFORMS[p];
 const getPlatformLogo = (p: Platform): string => PLATFORMS[p].logo;
 const getPlatformDisplayName = (p: Platform): string => PLATFORMS[p].displayName;
-const getPlatformOAuthFunction = (p: Platform): (() => Promise<void>) | undefined => PLATFORMS[p].OAuthFunction;
+const getPlatformOAuthFunction = (p: Platform): (() => Promise<void>) => PLATFORMS[p].OAuthFunction;
 const getPlatformCallbackFunction = (p: Platform): (() => Promise<void>) | undefined => PLATFORMS[p].CallbackFunction;
 
 export default Platform;
