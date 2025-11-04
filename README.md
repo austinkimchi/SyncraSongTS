@@ -21,13 +21,13 @@
 This is a **public repository** currently under active development.  
 **Not intended for redistribution or derivative use.**
 
-Hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
+Hosted at: [https://ssv2.austin.kim/](https://ssv2.austin.kim/)
 
 ---
 
 ## 📖 Overview
 **SyncraSongTS** is a front-end web application built using the **MERN stack** — MongoDB, Express.js, React, and Node.js.  
-It connects to the companion back-end service, [SyncraSongAPI](https://github.com/austinkimchi/SyncraSongAPI) (**private repository**) for playlist transfer and synchronization features.  
+It connects to the companion back-end service, [SyncraSongTSAPI](https://github.com/austinkimchi/SyncraSongTSAPI) (**private repository**) for playlist transfer and synchronization features.  
 
 > [!IMPORTANT]
 > **You must be an active Apple Music subscriber** to link your Apple Music account with this app.  
