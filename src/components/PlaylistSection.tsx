@@ -103,6 +103,7 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       <PlaylistCollection
         playlists={playlists}
+        platform={platform}
         status={state.PENDING}
         onAdd={(pl) => onAddToPending(pl, platform)}
         onRemove={() => { }}

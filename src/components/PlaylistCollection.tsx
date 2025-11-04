@@ -4,22 +4,26 @@ import { PlaylistCollectionProps } from "../types/playlist";
 
 const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
   playlists,
+  platform,
   // status,
   onRemove,
   onAdd,
-}) => (
-  <div className="grid playlist-collection display-grid md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
-    {playlists?.map((pl) => {
-      return (<PlaylistCard
-        key={pl.id}
-        data={pl}
-        onAdd={onAdd}
-        onRemove={onRemove}
-      />)
-    }
+}) => {
+  return (
+    <div className="grid playlist-collection display-grid md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
+      {playlists?.map((pl) => {
+        pl.platform = platform!;
+        return (<PlaylistCard
+          key={pl.id}
+          data={pl}
+          onAdd={onAdd}
+          onRemove={onRemove}
+        />)
+      }
 
-    )}
-  </div>
-);
+      )}
+    </div>
+  )
+};
 
 export default PlaylistCollection;

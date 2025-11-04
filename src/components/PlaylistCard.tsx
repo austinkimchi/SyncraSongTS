@@ -13,7 +13,7 @@ interface PlaylistComponentProps {
 }
 
 const PlaylistCard: React.FC<PlaylistComponentProps> = ({
-  data: { id, name, image, trackCount, status, platform, description, isPublic, href },
+  data: { id, name, image, trackCount, platform, status, description, isPublic, href },
   onAdd,
   onRemove,
 }) => {

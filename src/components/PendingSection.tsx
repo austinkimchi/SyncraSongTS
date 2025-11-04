@@ -19,6 +19,7 @@ const PendingSection: React.FC<PendingPlaylistProps> = ({
       <h3>Pending Playlists</h3>
       <PlaylistCollection
         playlists={playlists}
+        platform={playlists[0]?.platform || null}
         status={state.PENDING}
         onRemove={onRemove}
       />

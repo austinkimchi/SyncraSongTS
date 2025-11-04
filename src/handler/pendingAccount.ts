@@ -9,8 +9,7 @@ const notifyUpdate = () => {
 
 export interface PendingAccountInfo {
   provider: Platform;
-  providerUserId: string;
-  providerAccessToken: string;
+  state: string;
 }
 
 export const storePendingAccount = (info: PendingAccountInfo): void => {

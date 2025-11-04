@@ -1,5 +1,4 @@
-import config from "../../config.json";
-const BASE_API_URL = `https://${config.subdomain}.${config.domain_name}/api`;
+import { API_FULL_URL } from "../config";
 declare const MusicKit: any;
 
 interface AppleMusicConfig {
@@ -13,7 +12,7 @@ interface AppleMusicConfig {
 async function launchAppleMusicAuthorization(): Promise<boolean> {
   try {
     // Get MusicUserToken
-    const fetchDevToken = await fetch(`${BASE_API_URL}/apple/devToken`, {
+    const fetchDevToken = await fetch(`${API_FULL_URL}/apple/devToken`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -54,7 +53,7 @@ async function launchAppleMusicAuthorization(): Promise<boolean> {
     localStorage.setItem("musicUserToken", musicUserToken);
 
     const completeResponse = await fetch(
-      `${BASE_API_URL}/oAuth/callback/apple`,
+      `${API_FULL_URL}/api/oauth/callback/apple`,
       {
         method: "POST",
         headers: {
@@ -76,7 +75,7 @@ async function launchAppleMusicAuthorization(): Promise<boolean> {
 async function launchSpotifyAuthorization(): Promise<boolean> {
   try {
     const linkResponse = await fetch(
-      `${BASE_API_URL}/oAuth/authorize/spotify`,
+      `${API_FULL_URL}/oauth/authorize/spotify`,
       {
         method: "GET",
         headers: {

@@ -21,8 +21,8 @@ export class AppleMusicClient extends PlatformClient {
     return { id: "apple_user", displayName: "Apple Music User" };
   }
 
-  async getUserPlaylists(_opts?: { offset?: string; limit?: number }) {
-    return { items: [], next: false };
+  async getUserPlaylists(_opts?: { fetch?: boolean }) {
+    return { items: []};
   }
 
   async createPlaylist(name: string, opts?: { description?: string; isPublic?: boolean }) {
