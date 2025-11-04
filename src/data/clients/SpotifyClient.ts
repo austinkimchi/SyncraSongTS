@@ -4,17 +4,18 @@ import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
 import { spotifyAuthService } from "../../handler/spotifyAPI";
 import { PlatformClient } from "./IPlatformClient";
+import { API_FULL_URL } from "../../config";
 
 interface SpotifyPlaylistResponse {
   items: Array<{
     id: string;
     name: string;
-    images: Array<{ url: string }>;
-    tracks: { total: number };
     description?: string;
+    tracksCount: number;
+    href: string;
+    images: string;
     public: boolean;
-    external_urls: { spotify: string };
-    owner: { display_name?: string };
+    ownerName?: string;
   }>;
   next?: string | null;
 }
@@ -49,29 +50,11 @@ interface SpotifyTrackSearchResponse {
 
 export class SpotifyClient extends PlatformClient {
   readonly platform = Platform.SPOTIFY;
-  private token?: string;
-
-  setToken(token: string): void {
-    this.token = token;
-  }
 
   private get headers(): Record<string, string> {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
+    headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
     return headers;
-  }
-
-  async getRefreshToken(): Promise<string> {
-    if (!this.profile?.id || !this.token) {
-      return Promise.reject("No refresh token available");
-    }
-    const token = await spotifyAuthService.getRefreshToken(this.profile.id, this.token);
-    if (!token) {
-      return Promise.reject("No refresh token available");
-    }
-    return token;
   }
 
   async isLoggedIn(): Promise<boolean> {
@@ -93,29 +76,16 @@ export class SpotifyClient extends PlatformClient {
     return { id: data.id as string, displayName: data.display_name as string };
   }
 
-  async getUserPlaylists(opts?: { offset?: string; limit?: number }) {
-    const params = new URLSearchParams();
-    if (opts?.limit) params.set("limit", String(opts.limit));
-    if (opts?.offset) params.set("offset", String(opts.offset));
-
-    const response = await fetch(`https://api.spotify.com/v1/me/playlists?${params.toString()}`, {
+  async getUserPlaylists(opts?: { fetch?: boolean }) {
+    console.log('SpotifyClient.getUserPlaylists called with opts=', opts);
+    // fetch from backend
+    const res = await fetch(`${API_FULL_URL}/api/spotify/fetchPlaylist?fetch=${opts?.fetch ? 'true' : 'false'}`, {
       headers: this.headers,
     });
-    const data: SpotifyPlaylistResponse = await response.json();
-    const playlists: Playlist[] = data.items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      image: item.images[0]?.url,
-      trackCount: item.tracks.total,
-      description: item.description,
-      isPublic: item.public,
-      href: item.external_urls.spotify,
-      platform: Platform.SPOTIFY,
-      owner: item.owner.display_name ?? undefined,
-      status: state.SUCCESS,
-    }));
+    // map response to Playlist[]
+    const data = await res.json() as { playlists: Playlist[] };
 
-    return { items: playlists, next: data.next ? true : false };
+    return { items: data.playlists };
   }
 
   async createPlaylist(name: string, opts?: { description?: string; isPublic?: boolean; image?: string }) {
@@ -135,6 +105,7 @@ export class SpotifyClient extends PlatformClient {
       isPublic: playlistData.public,
       href: playlistData.external_urls.spotify,
       status: state.SUCCESS,
+      source: Platform.SPOTIFY
     };
     return playlist;
   }

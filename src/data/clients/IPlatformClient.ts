@@ -3,8 +3,7 @@ import type { Playlist } from "../../types/playlist";
 import type { Track } from "../../types/track";
 
 export interface PlaylistQueryOptions {
-  offset?: string;
-  limit?: number;
+  fetch?: boolean;
 }
 
 export interface PlaylistTracksQueryOptions {

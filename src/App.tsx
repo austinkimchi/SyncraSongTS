@@ -48,15 +48,51 @@ const App: React.FC = () => {
   const appleClient = getClient(Platform.APPLE_MUSIC) as AppleMusicClient;
   const spotifyClient = getClient(Platform.SPOTIFY) as SpotifyClient;
 
+  useEffect(() => {
+    const handlePendingAccountChange = () => {
+      const info = getPendingAccount();
+      setPendingAccount(info);
+      setShowCreateAccount(info !== null);
+      setIsDemoMode(false);
+    };
+
+    const unsubscribe = subscribeToPendingAccount(handlePendingAccountChange);
+    window.addEventListener("auth-changed", handlePendingAccountChange);
+    handlePendingAccountChange();
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("auth-changed", handlePendingAccountChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setIsDemoMode(!localStorage.getItem("token"));
+    };
+
+    window.addEventListener("auth-changed", handleAuthChange);
+    handleAuthChange();
+
+    return () => {
+      window.removeEventListener("auth-changed", handleAuthChange);
+    };
+  }, []);
+
   // fetch playlists via IPlatformClient (no hardcoding)
-  const fetchPlaylists = useCallback(async (platform: Platform) => {
+  const fetchPlaylists = useCallback(async (platform: Platform, opt?: { fetch: boolean }) => {
     const client = getClient(platform);
-    console.log(client)
     if (!client) return;
-    const loggedIn = await client.profile?.id ? true : false;
+    let loggedIn = false;
+    try {
+      loggedIn = await client.isLoggedIn();
+    } catch (error) {
+      console.error(`Failed to determine ${platform} login status`, error);
+      loggedIn = false;
+    }
     if (!loggedIn) return;
 
-    const res = await client.getUserPlaylists({ limit: 100 });
+    const res = await client.getUserPlaylists({ fetch: opt?.fetch ?? false });
     setPlaylists((prev) => ({
       ...prev,
       [platform]: res.items,
@@ -69,9 +105,6 @@ const App: React.FC = () => {
 
   // Set demo mode on/off
   useEffect(() => {
-    if (localStorage.getItem("spotify-profile"))
-      setIsDemoMode(false);
-
     if (isDemoMode) {
       setPlaylists({
         [Platform.APPLE_MUSIC]: DEMO_PLAYLISTS_APPLE,
@@ -110,23 +143,6 @@ const App: React.FC = () => {
     setPendingDisplayedOn(null);
   };
 
-  useEffect(() => {
-    const handlePendingAccountChange = () => {
-      const info = getPendingAccount();
-      setPendingAccount(info);
-      setShowCreateAccount(info !== null);
-      setIsDemoMode(false);
-    };
-
-    const unsubscribe = subscribeToPendingAccount(handlePendingAccountChange);
-    window.addEventListener("auth-changed", handlePendingAccountChange);
-    handlePendingAccountChange();
-
-    return () => {
-      unsubscribe();
-      window.removeEventListener("auth-changed", handlePendingAccountChange);
-    };
-  }, []);
 
   useEffect(() => {
     if (showCreateAccount) {
@@ -158,7 +174,7 @@ const App: React.FC = () => {
           platform={Platform.APPLE_MUSIC}
           playlists={pendingDisplayedOn === "apple" ? [] : (playlists.apple || [])}
           onAddToPending={handleAddToPending}
-          onRefresh={() => fetchPlaylists(Platform.APPLE_MUSIC)}
+          onRefresh={() => fetchPlaylists(Platform.APPLE_MUSIC, { fetch: true })}
           lastUpdated={lastUpdated.apple}
         >
 
@@ -176,7 +192,7 @@ const App: React.FC = () => {
           platform={Platform.SPOTIFY}
           playlists={pendingDisplayedOn === Platform.SPOTIFY ? [] : (playlists.spotify || [])}
           onAddToPending={handleAddToPending}
-          onRefresh={() => fetchPlaylists(Platform.SPOTIFY)}
+          onRefresh={() => fetchPlaylists(Platform.SPOTIFY, { fetch: true })}
           lastUpdated={lastUpdated.spotify}
         >
 

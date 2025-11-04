@@ -1,190 +1,150 @@
-import { APP_FULL_URL, API_FULL_URL, SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from "../config";
+import { API_FULL_URL } from "../config";
 import Platform from "../types/platform";
 import type { PlatformAuthService } from "./PlatformAuthService";
-import { storePendingAccount } from "./pendingAccount";
+import { storePendingAccount, clearPendingAccount } from "./pendingAccount";
 
-export interface SpotifyProfile {
-  country: string;
-  display_name: string | null;
-  email: string; // unverified
-  explicit_content: {
-    filter_enabled: boolean;
-    filter_locked: boolean;
-  };
-  external_urls: {
-    spotify: string;
-  };
-  followers: {
-    href: string | null;
-    total: number;
-  };
-  href: string;
-  id: string;
-  images: Array<{
-    width: number | null;
-    height: number | null;
-    url: string;
-  }>;
-  product: "premium" | "free" | "open" | null; // open and free are free accounts
-  type: "user";
-  uri: string;
+interface OAuthLinkResponse {
+  state: string;
+  authorizeUrl: string;
 }
 
+interface SpotifyAccountProfile {
+  id: string;
+  display_name?: string | null;
+}
+
+interface OAuthCallbackResponse {
+  info?: string;
+  jwt?: string;
+  userId?: { _id: string } | string;
+  state?: string;
+}
+
+const PROFILE_STORAGE_KEY = "spotify-profile";
+const STATE_STORAGE_KEY = "spotify-oauth-state";
+
 class SpotifyAuthService implements PlatformAuthService {
-  private static STORAGE_KEY = "spotify-profile";
-
   async redirectToOAuth(): Promise<void> {
-    const verifier = this.generateCodeVerifier(128);
-    const challenge = await this.generateCodeChallenge(verifier);
+    const payload = { provider: Platform.SPOTIFY, intent: "login" };
 
-    sessionStorage.setItem("spotify_verifier", verifier);
+    const response = await this.requestOAuthLink(payload);
+    if (!response?.authorizeUrl || !response.state) {
+      throw new Error("Spotify authorization link was not provided by the server");
+    }
 
-    const params = new URLSearchParams();
-    params.append("client_id", SPOTIFY_CLIENT_ID);
-    params.append("response_type", "code");
-    params.append("redirect_uri", `${APP_FULL_URL}/callback/spotify`);
-    params.append("scope", SPOTIFY_SCOPES.join(" "));
-    params.append("code_challenge_method", "S256");
-    params.append("code_challenge", challenge);
-
-    document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    sessionStorage.setItem(STATE_STORAGE_KEY, response.state);
+    window.location.href = response.authorizeUrl;
   }
 
   async handleCallback(): Promise<void> {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    if (!code) {
+    const state = params.get("state");
+    if (!code || !state) return;
+
+
+    const storedState = sessionStorage.getItem(STATE_STORAGE_KEY);
+    sessionStorage.removeItem(STATE_STORAGE_KEY);
+    if (storedState && storedState !== state) {
+      console.error("Spotify OAuth state mismatch");
+      window.history.replaceState({}, document.title, "/");
       return;
     }
 
-    const token = await this.getAccessToken(SPOTIFY_CLIENT_ID, code);
-    const profile = await this.fetchProfile(token);
+    const callbackUrl = new URL(`${API_FULL_URL}/api/oauth/callback/spotify`);
+    callbackUrl.searchParams.set("code", code);
+    callbackUrl.searchParams.set("state", state);
 
-    await this.setAccessToken(token, profile.id);
+    let callbackResponse: Response;
+    try {
+      callbackResponse = await fetch(callbackUrl.toString(), { method: "GET" });
+    } catch (error) {
+      console.error("Failed to reach Spotify callback endpoint", error);
+      window.history.replaceState({}, document.title, "/");
+      return;
+    }
 
-    localStorage.setItem(SpotifyAuthService.STORAGE_KEY, JSON.stringify(profile));
+    if (!callbackResponse.ok) {
+      console.error("Spotify callback failed", callbackResponse.status);
+      window.history.replaceState({}, document.title, "/");
+      return;
+    }
+
+    let data: OAuthCallbackResponse = {};
+    try {
+      data = await callbackResponse.json();
+    } catch (error) {
+      console.error("Failed to parse Spotify callback response", error);
+      window.history.replaceState({}, document.title, "/");
+      return;
+    }
+
+    if (data.jwt) {
+      localStorage.setItem("token", data.jwt);
+    }
+
+    if (data.info === "complete-signup" && data.state) {
+      storePendingAccount({ provider: Platform.SPOTIFY, state: data.state });
+    } else if (data.info === "signin" || data.info === "connected") {
+      clearPendingAccount();
+      window.dispatchEvent(new Event("auth-changed"));
+    }
+
     window.history.replaceState({}, document.title, "/");
   }
 
   async isLoggedIn(): Promise<boolean> {
-    return this.getStoredProfile() !== null;
+    return Promise.resolve(!!localStorage.getItem("token"));
   }
 
-  getStoredProfile(): SpotifyProfile | null {
-    const profile = localStorage.getItem(SpotifyAuthService.STORAGE_KEY);
-    return profile ? (JSON.parse(profile) as SpotifyProfile) : null;
-  }
-
-  async getRefreshToken(userID: string, token: string): Promise<string | undefined> {
-    const response = await fetch(`${API_FULL_URL}/api/spotify/refreshToken`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ userID }),
-    });
-    if (!response.ok) return undefined;
-
-    const data = await response.json();
-    return data.accessToken;
-  }
-
-  private generateCodeVerifier(length: number): string {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (let i = 0; i < length; i += 1) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-
-    return text;
-  }
-
-  private async generateCodeChallenge(codeVerifier: string): Promise<string> {
-    const data = new TextEncoder().encode(codeVerifier);
-    const digest = await window.crypto.subtle.digest("SHA-256", data);
-    return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-  }
-
-  private async getAccessToken(clientId: string, code: string): Promise<string> {
-    const verifier = sessionStorage.getItem("spotify_verifier");
-
-    const params = new URLSearchParams();
-    params.append("client_id", clientId);
-    params.append("grant_type", "authorization_code");
-    params.append("code", code);
-    params.append("redirect_uri", `${APP_FULL_URL}/callback/spotify`);
-    if (verifier) {
-      params.append("code_verifier", verifier);
-    }
-
-    const result = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params,
-    });
-
-    const { access_token: accessToken } = await result.json();
-    return accessToken;
-  }
-
-  private async fetchProfile(token: string): Promise<SpotifyProfile> {
-    const result = await fetch("https://api.spotify.com/v1/me", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data: SpotifyProfile = await result.json();
-    return data;
-  }
-
-  private async setAccessToken(token: string, userID: string): Promise<void> {
-    const storedToken = localStorage.getItem("token");
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (storedToken) {
-      headers.Authorization = `Bearer ${storedToken}`;
-    }
-
-    let clientToken: Response | null = null;
+  getStoredProfile(): SpotifyAccountProfile | null {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!raw) return null;
     try {
-      clientToken = await fetch(`${API_FULL_URL}/api/spotify/setToken`, {
+      return JSON.parse(raw) as SpotifyAccountProfile;
+    } catch (error) {
+      console.error("Failed to parse stored Spotify profile", error);
+      localStorage.removeItem(PROFILE_STORAGE_KEY);
+      return null;
+    }
+  }
+
+  setStoredProfile(profile: SpotifyAccountProfile | null) {
+    if (!profile) {
+      localStorage.removeItem(PROFILE_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  }
+
+  private async requestOAuthLink(payload: { provider: Platform; intent: string }): Promise<OAuthLinkResponse | null> {
+    const requestBodies: Array<{ method: string; body?: BodyInit; url: string; headers?: Record<string, string> }> = [
+      {
         method: "POST",
-        headers,
-        body: JSON.stringify({ accessToken: token, userID: userID }),
-      });
-    } catch (error) {
-      console.error("Failed to set Spotify access token", error);
-      return;
+        url: `${API_FULL_URL}/api/oauth/link`,
+        body: JSON.stringify({ provider: payload.provider, intent: payload.intent, redirectUri: `${window.location.origin}/callback/spotify` }),
+        headers: { "Content-Type": "application/json" },
+      }
+    ];
+    console.log(`${window.location.origin}/callback/spotify`);
+
+    for (const request of requestBodies) {
+      try {
+        const response = await fetch(request.url, {
+          method: request.method,
+          headers: request.headers,
+          body: request.body,
+        });
+        if (!response.ok) {
+          continue;
+        }
+        return (await response.json()) as OAuthLinkResponse;
+      } catch (error) {
+        console.error(`Failed to request Spotify OAuth link via ${request.method}`, error);
+      }
     }
 
-    if (clientToken.status === 401) {
-      storePendingAccount({
-        provider: Platform.SPOTIFY,
-        providerAccessToken: token,
-        providerUserId: userID,
-      });
-      return;
-    }
-
-    if (!clientToken.ok) {
-      console.error("Unexpected response when setting Spotify access token", clientToken.status);
-      return;
-    }
-
-    let data: { token?: string } = {};
-    try {
-      data = await clientToken.json();
-    } catch (error) {
-      console.error("Failed to parse Spotify token response", error);
-      return;
-    }
-
-    const clientAuthToken = data.token;
-    if (clientAuthToken) {
-      localStorage.setItem("token", clientAuthToken);
-      window.dispatchEvent(new Event("auth-changed"));
-    }
+    throw new Error("Unable to request Spotify OAuth link");
   }
 }
 
@@ -193,5 +153,3 @@ export const spotifyAuthService = new SpotifyAuthService();
 export const redirectToSpotifyOAuth = () => spotifyAuthService.redirectToOAuth();
 export const handleSpotifyCallback = () => spotifyAuthService.handleCallback();
 export const isSpotifyLoggedIn = () => spotifyAuthService.getStoredProfile();
-export const getSpotifyRefreshToken = (userID: string, token: string) =>
-  spotifyAuthService.getRefreshToken(userID, token);

@@ -16,6 +16,7 @@ export interface Playlist {
 
 export interface PlaylistCollectionProps {
   playlists: Playlist[];
+  platform?: Platform;
   status?: PlaylistStatus;
   onAdd?: (playlist: Playlist) => void;
   onRemove?: (playlist: Playlist) => void;
