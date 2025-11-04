@@ -40,12 +40,12 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ pendingAccount 
     setError("");
 
     try {
-      const response = await fetch(`${API_FULL_URL}/auth/users/create`, {
+      const response = await fetch(`${API_FULL_URL}/api/oauth/create-account`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userID: trimmedUsername,
-          oauth: pendingAccount
+          state: pendingAccount.state,
+          username: trimmedUsername,
         }),
       });
 
@@ -54,19 +54,19 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ pendingAccount 
         return;
       }
 
-      if (response.status !== 201) {
+      if (response.status !== 201 && response.status !== 200) {
         setError("Unable to create account right now. Please try again.");
         return;
       }
 
-      let data: { token?: string } = {};
+      let data: { jwt?: string } = {};
       try {
         data = await response.json();
       } catch (parseError) {
-        console.error("Failed to parse /auth/users/create response", parseError);
+        console.error("Failed to parse /oauth/create-account response", parseError);
       }
 
-      const token = data.token;
+      const token = data.jwt;
       if (token) {
         localStorage.setItem("token", token);
       }
