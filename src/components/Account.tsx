@@ -139,6 +139,8 @@ const Account: React.FC<AccountProps> = ({ }) => {
         if (plat) providers.push(plat);
       }
 
+      localStorage.setItem("providers", JSON.stringify(providers));
+
       const accountInfo: AccountInfo = {
         userID: userId,
         providers,

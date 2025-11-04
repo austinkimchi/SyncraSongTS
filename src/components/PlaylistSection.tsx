@@ -18,8 +18,12 @@ interface PlaylistSectionProps {
   lastUpdated?: Date | null;
   onRefresh: () => void;
   onAddToPending: (p: Playlist, destination: Platform) => void;
-  onChangePlatform: (p: Platform) => void; // NEW
-  children?: React.ReactNode; // Pending section goes here
+  onChangePlatform: (p: Platform) => void;
+  linked: boolean;
+  needsScopeUpgrade?: boolean;
+  onConnect: () => void;
+  onReauthorize: () => void;
+  children?: React.ReactNode;
 }
 
 const PlaylistSection: React.FC<PlaylistSectionProps> = ({
@@ -30,6 +34,10 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   onAddToPending,
   onChangePlatform,
   children,
+  linked,
+  needsScopeUpgrade,
+  onConnect,
+  onReauthorize,
 }) => {
   const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
@@ -44,7 +52,6 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   const handleClose = () => setAnchorEl(null);
 
   const platforms = useMemo(() => Object.values(Platform), []);
-  const loggedIn = !!localStorage.getItem("token");
 
   return (
     <div ref={drop} className={`playlist-section ${isOver && canDrop ? "over" : ""} p-4`}>
@@ -100,8 +107,15 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             </small>
           )}
 
-          {/* TODO(reauth): if this panel's client isn't linked, render a Connect/Reauthorize CTA instead of Refresh */}
-          {loggedIn && (
+          {!linked ? (
+            <Button variant="contained" size="small" onClick={onConnect}>
+              Connect {getPlatformDisplayName(platform)}
+            </Button>
+          ) : needsScopeUpgrade ? (
+            <Button variant="contained" size="small" onClick={onReauthorize}>
+              Reauthorize {getPlatformDisplayName(platform)}
+            </Button>
+          ) : (
             <Button variant="outlined" size="small" onClick={onRefresh}>
               Refresh
             </Button>

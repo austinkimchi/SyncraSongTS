@@ -58,6 +58,8 @@ export abstract class PlatformClient {
     isrc: string,
     opts?: { limit?: number },
   ): Promise<Track[]>;
+
+  abstract requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T>;
 }
 
 export type IPlatformClient = PlatformClient;

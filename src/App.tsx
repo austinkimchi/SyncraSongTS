@@ -9,14 +9,15 @@ import CreateAccountModal from "./components/CreateAccountModal";
 
 // Types & helpers
 import type { Playlist } from "./types/playlist";
-import Platform from "./types/platform";
+import Platform, { getPlatformOAuthFunction } from "./types/platform";
 import { state } from "./types/status";
 import { } from "./handler/callback"; // runs on import
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY, DEMO_PLAYLISTS_SOUNDCLOUD } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
-import { SpotifyClient } from "./data/clients/SpotifyClient";
-import { AppleMusicClient } from "./data/clients/AppleMusicClient";
+
+import { useLinkedStatus } from "./auth/useLinkedStatus";
+import { emitAuthChanged } from "./auth/emitAuthChanged";
 import {
   PendingAccountInfo,
   getPendingAccount,
@@ -125,6 +126,38 @@ const App: React.FC = () => {
   const leftPlaylists = playlists[leftPanelPlatform] ?? [];
   const rightPlaylists = playlists[rightPanelPlatform] ?? [];
 
+  const leftLink = useLinkedStatus(leftPanelPlatform);
+  const rightLink = useLinkedStatus(rightPanelPlatform);
+
+  const handleConnect = useCallback(async (platform: Platform) => {
+    const client = getClient(platform);
+    try {
+      await getPlatformOAuthFunction(client.platform)();
+      emitAuthChanged(platform);
+      await fetchPlaylists(platform, { force: true });
+    } catch (e) {
+      console.error("connect failed", e);
+    }
+  }, [fetchPlaylists]);
+
+  const handleReauthorize = useCallback(async (platform: Platform) => {
+    const client = getClient(platform) as any;
+    try {
+      if (typeof client?.reauthorize === "function") {
+        await client.reauthorize(); // optionally pass stronger scopes here
+      } else {
+        await client?.login(); // fallback
+      }
+      emitAuthChanged(platform);
+      await fetchPlaylists(platform, { force: true });
+    } catch (e) {
+      console.error("reauthorize failed", e);
+    }
+  }, [fetchPlaylists]);
+
+  // When a panel switches platform, proactively refresh its auth status
+  useEffect(() => { leftLink.check(); }, [leftPanelPlatform]);
+  useEffect(() => { rightLink.check(); }, [rightPanelPlatform]);
   return (
     <div data-testid="app-container">
       <nav className="navbar">
@@ -138,31 +171,31 @@ const App: React.FC = () => {
       </nav>
 
       <div className="flex flex-row">
-        {/* LEFT PANEL */}
         <PlaylistSection
           platform={leftPanelPlatform}
           playlists={pendingDisplayedOn === leftPanelPlatform ? [] : leftPlaylists}
           lastUpdated={lastUpdated[leftPanelPlatform]}
           onRefresh={() => fetchPlaylists(leftPanelPlatform, { force: true })}
           onAddToPending={addToPending}
-          onChangePlatform={(p) => { // prevent same providers on both sides (auto-swap)
-            if (p === rightPanelPlatform) {
-              setRightPanelPlatform(leftPanelPlatform);
-            }
+          onChangePlatform={(p) => {
+            if (p === rightPanelPlatform) setRightPanelPlatform(leftPanelPlatform);
             setLeftPanelPlatform(p);
           }}
+          linked={leftLink.status.linked}
+          needsScopeUpgrade={!!leftLink.status.needsScopeUpgrade}
+          onConnect={() => handleConnect(leftPanelPlatform)}
+          onReauthorize={() => handleReauthorize(leftPanelPlatform)}
         >
           {pendingDisplayedOn === leftPanelPlatform && (
             <PendingSection
               playlists={pendingPlaylists}
-              onCommit={() => { /* TODO: implement transfer action */ }}
+              onCommit={() => { }}
               onRemoveAll={cancelPending}
               onRemove={removeFromPending}
             />
           )}
         </PlaylistSection>
 
-        {/* RIGHT PANEL */}
         <PlaylistSection
           platform={rightPanelPlatform}
           playlists={pendingDisplayedOn === rightPanelPlatform ? [] : rightPlaylists}
@@ -170,16 +203,18 @@ const App: React.FC = () => {
           onRefresh={() => fetchPlaylists(rightPanelPlatform, { force: true })}
           onAddToPending={addToPending}
           onChangePlatform={(p) => {
-            if (p === leftPanelPlatform) {
-              setLeftPanelPlatform(rightPanelPlatform);
-            }
+            if (p === leftPanelPlatform) setLeftPanelPlatform(rightPanelPlatform);
             setRightPanelPlatform(p);
           }}
+          linked={rightLink.status.linked}
+          needsScopeUpgrade={!!rightLink.status.needsScopeUpgrade}
+          onConnect={() => handleConnect(rightPanelPlatform)}
+          onReauthorize={() => handleReauthorize(rightPanelPlatform)}
         >
           {pendingDisplayedOn === rightPanelPlatform && (
             <PendingSection
               playlists={pendingPlaylists}
-              onCommit={() => { /* TODO: implement transfer action */ }}
+              onCommit={() => { }}
               onRemoveAll={cancelPending}
               onRemove={removeFromPending}
             />

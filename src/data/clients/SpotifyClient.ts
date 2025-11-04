@@ -5,6 +5,7 @@ import type { Track } from "../../types/track";
 import { spotifyAuthService } from "../../handler/spotifyAPI";
 import { PlatformClient } from "./IPlatformClient";
 import { API_FULL_URL } from "../../config";
+import { emitAuthChanged } from "../../auth/emitAuthChanged";
 
 interface SpotifyPlaylistResponse {
   items: Array<{
@@ -77,12 +78,10 @@ export class SpotifyClient extends PlatformClient {
   }
 
   async getUserPlaylists(opts?: { fetch?: boolean }) {
-    console.log('SpotifyClient.getUserPlaylists called with opts=', opts);
-    // fetch from backend
     const res = await fetch(`${API_FULL_URL}/api/spotify/fetchPlaylist?fetch=${opts?.fetch ? 'true' : 'false'}`, {
       headers: this.headers,
     });
-    // map response to Playlist[]
+    if (!res.ok) return { items: [] };
     const data = await res.json() as { playlists: Playlist[] };
 
     return { items: data.playlists };
@@ -104,8 +103,7 @@ export class SpotifyClient extends PlatformClient {
       trackCount: 0,
       isPublic: playlistData.public,
       href: playlistData.external_urls.spotify,
-      status: state.SUCCESS,
-      source: Platform.SPOTIFY
+      status: state.SUCCESS
     };
     return playlist;
   }
@@ -157,5 +155,16 @@ export class SpotifyClient extends PlatformClient {
       isrc: track.external_ids?.isrc,
     }));
     return tracks;
+  }
+
+  async requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T> {
+    const res = await fetch(input, init);
+    if (res.status === 401 || res.status === 403) {
+      // Token might be expired or invalid, emit auth-changed event
+      emitAuthChanged(platform);
+    }
+    
+    if (!res.ok) {console.error(`Request failed with status ${res.status}`);}
+    return res.json() as Promise<T>;
   }
 }
