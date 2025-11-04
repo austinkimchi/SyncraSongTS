@@ -2,7 +2,7 @@
 <div style="text-align: center;">
   <p>
     <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
+      <img src="https://img.shields.io/badge/License-GNU-red.svg" alt="MIT License" />
     </a>
     <a href="https://react.dev/">
       <img src="https://img.shields.io/badge/React-18.x-blue.svg" alt="React" />
@@ -84,4 +84,4 @@ It connects to the companion back-end service, [SyncraSongAPI](https://github.co
 ---
 
 ## 📄 License  
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU License** — see the [LICENSE](LICENSE) file for details.
