@@ -12,6 +12,7 @@ import type { Playlist } from "./types/playlist";
 import Platform, { getPlatformOAuthFunction } from "./types/platform";
 import { state } from "./types/status";
 import { } from "./handler/callback"; // runs on import
+import { } from "./auth/providerStorage"; // runs on import
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY, DEMO_PLAYLISTS_SOUNDCLOUD } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
@@ -228,6 +229,8 @@ const App: React.FC = () => {
           onChangePlatform={(p) => {
             if (p === rightPanelPlatform) setRightPanelPlatform(leftPanelPlatform);
             setLeftPanelPlatform(p);
+            setPendingPlaylists([]);
+            setPendingTarget(null);
           }}
           linked={isDemoMode ? true : leftLink.status.linked}
           needsScopeUpdate={!!leftLink.status.needsScopeUpgrade}
@@ -254,6 +257,8 @@ const App: React.FC = () => {
           onChangePlatform={(p) => {
             if (p === leftPanelPlatform) setLeftPanelPlatform(rightPanelPlatform);
             setRightPanelPlatform(p);
+            setPendingPlaylists([]);
+            setPendingTarget(null);
           }}
           linked={isDemoMode ? true : rightLink.status.linked}
           needsScopeUpdate={!!rightLink.status.needsScopeUpgrade}

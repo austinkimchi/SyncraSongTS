@@ -1,0 +1,87 @@
+import { Platform } from "../types/enums/platform.enum";
+
+const PROVIDERS_STORAGE_KEY = "providers";
+const PROVIDERS_UPDATED_EVENT = "providers-updated";
+
+type ProviderEventDetail = {
+  providers: Platform[];
+};
+
+const validProviders = new Set<Platform>(Object.values(Platform));
+
+const parseProviders = (raw: string | null): Platform[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((value): value is Platform => typeof value === "string" && validProviders.has(value as Platform));
+  } catch (error) {
+    console.error("Failed to parse stored providers", error);
+    localStorage.removeItem(PROVIDERS_STORAGE_KEY);
+    return [];
+  }
+};
+
+const emitProvidersUpdated = (providers: Platform[]) => {
+  const event = new CustomEvent<ProviderEventDetail>(PROVIDERS_UPDATED_EVENT, {
+    detail: { providers },
+  });
+  window.dispatchEvent(event);
+};
+
+export const getStoredProviders = (): Platform[] => {
+  return parseProviders(localStorage.getItem(PROVIDERS_STORAGE_KEY));
+};
+
+export const hasStoredProviders = (): boolean => localStorage.getItem(PROVIDERS_STORAGE_KEY) !== null && getStoredProviders().length > 0;
+
+const writeProviders = (providers: Platform[]) => {
+  localStorage.setItem(PROVIDERS_STORAGE_KEY, JSON.stringify(providers));
+  emitProvidersUpdated(providers);
+};
+
+export const setStoredProviders = (providers: Platform[]) => {
+  writeProviders(providers);
+};
+
+export const addStoredProvider = (provider: Platform) => {
+  const providers = new Set(getStoredProviders());
+  providers.add(provider);
+  writeProviders(Array.from(providers));
+};
+
+export const removeStoredProvider = (provider: Platform) => {
+  const providers = new Set(getStoredProviders());
+  providers.delete(provider);
+  writeProviders(Array.from(providers));
+};
+
+export const clearStoredProviders = () => {
+  writeProviders([]);
+};
+
+export const providersUpdatedEventName = PROVIDERS_UPDATED_EVENT;
+
+export const waitForProviders = async (timeoutMs = 1000): Promise<Platform[]> => {
+  const current = getStoredProviders();
+  if (current.length > 0) {
+    return current;
+  }
+
+  return new Promise((resolve) => {
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      window.removeEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener);
+      resolve(getStoredProviders());
+    };
+
+    const onUpdate = () => {
+      finish();
+    };
+
+    window.addEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener, { once: true });
+    window.setTimeout(finish, timeoutMs);
+  });
+};
