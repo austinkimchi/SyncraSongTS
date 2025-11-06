@@ -41,12 +41,15 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   onConnect,
   onReauthorize,
 }) => {
-  const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
-    accept: ["DRAG_FROM_PROVIDER"],
-    canDrop: (pl) => pl.platform !== platform,
-    drop: (pl) => onAddToPending(pl, { platform, side }),
-    collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
-  }));
+  const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(
+    () => ({
+      accept: ["DRAG_FROM_PROVIDER"],
+      canDrop: (pl) => pl.platform !== platform,
+      drop: (pl) => onAddToPending(pl, { platform, side }),
+      collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
+    }),
+    [platform, side, onAddToPending],
+  );
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
