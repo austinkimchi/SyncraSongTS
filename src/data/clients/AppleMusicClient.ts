@@ -1,7 +1,5 @@
 import Platform from "../../types/platform";
-import { state } from "../../types/status";
 import type { Playlist } from "../../types/playlist";
-import type { Track } from "../../types/track";
 import { appleMusicAuthService } from "../../handler/appleAPI";
 import { PlatformClient } from "./IPlatformClient";
 import { API_FULL_URL } from "../../config";
@@ -37,32 +35,6 @@ export class AppleMusicClient extends PlatformClient {
 
     const data = await res.json() as { playlists: Playlist[] };
     return { items: data.playlists }; 
-  }
-
-  async createPlaylist(name: string, opts?: { description?: string; isPublic?: boolean }) {
-    const playlist: Playlist = {
-      id: "new_apple_playlist",
-      platform: Platform.APPLE_MUSIC,
-      name,
-      owner: "Apple Music User",
-      trackCount: 0,
-      isPublic: opts?.isPublic ?? false,
-      href: "",
-      status: state.SUCCESS,
-    };
-    return playlist;
-  }
-
-  async addTracksToPlaylist(_playlistId: string, _tracks: Track[]) {
-    return;
-  }
-
-  async getPlaylistTracks(_playlistId: string, _opts?: { cursor?: string; limit?: number }) {
-    return { items: [], next: false };
-  }
-
-  async searchTrackByISRC(_isrc: string, _opts: { limit?: number } = {}) {
-    return [];
   }
 
   // TODO

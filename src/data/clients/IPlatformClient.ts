@@ -1,20 +1,8 @@
 import Platform from "../../types/platform";
 import type { Playlist } from "../../types/playlist";
-import type { Track } from "../../types/track";
 
 export interface PlaylistQueryOptions {
   fetch?: boolean;
-}
-
-export interface PlaylistTracksQueryOptions {
-  cursor?: string;
-  limit?: number;
-}
-
-export interface PlaylistCreationOptions {
-  description?: string;
-  isPublic?: boolean;
-  image?: string;
 }
 
 export interface PlatformProfile {
@@ -40,24 +28,6 @@ export abstract class PlatformClient {
     items: Playlist[];
     next?: boolean;
   }>;
-
-  abstract getPlaylistTracks(
-    playlistId: string,
-    opts?: PlaylistTracksQueryOptions,
-  ): Promise<{
-    items: Track[];
-    next?: boolean;
-  }>;
-
-  abstract createPlaylist(
-    name: string,
-    opts?: PlaylistCreationOptions,
-  ): Promise<Playlist>;
-
-  abstract searchTrackByISRC(
-    isrc: string,
-    opts?: { limit?: number },
-  ): Promise<Track[]>;
 
   abstract requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T>;
 }

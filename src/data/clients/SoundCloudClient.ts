@@ -1,8 +1,7 @@
 import Platform from "../../types/platform";
-import { PlatformClient, PlaylistCreationOptions } from "./IPlatformClient";
+import { PlatformClient } from "./IPlatformClient";
 import { soundCloudAuthService } from "../../handler/soundAPI";
-import { Playlist } from "../../types/playlist";
-import { state } from "../../types/status";
+import type { Playlist } from "../../types/playlist";
 
 
 export class SoundCloudClient extends PlatformClient {
@@ -36,37 +35,7 @@ export class SoundCloudClient extends PlatformClient {
 
     async getUserPlaylists(opts?: { fetch?: boolean }) {
         // Implementation for fetching user playlists from SoundCloud
-        return { items: [] };
-    }
-
-    async createPlaylist(name: string, opts?: PlaylistCreationOptions): Promise<Playlist> {
-        // Implementation for creating a playlist on SoundCloud
-        const playlist: Playlist = {
-            id: "new_soundcloud_playlist",
-            platform: Platform.SOUNDCLOUD,
-            name,
-            owner: this.profile?.displayName || "SoundCloud User",
-            trackCount: 0,
-            isPublic: opts?.isPublic ?? false,
-            href: "",
-            status: state.SUCCESS,
-        };
-        return playlist;
-    }
-
-    async addTracksToPlaylist(playlistId: string, tracks: any[]) {
-        // Implementation for adding tracks to a SoundCloud playlist
-        return;
-    }
-
-    async getPlaylistTracks(playlistId: string, opts?: { cursor?: string; limit?: number }) {
-        // Implementation for fetching tracks from a SoundCloud playlist
-        return { items: [], next: false };
-    }
-
-    async searchTrackByISRC(isrc: string, opts: { limit?: number } = {}) {
-        // Implementation for searching tracks by ISRC on SoundCloud
-        return [];
+        return { items: [] as Playlist[] };
     }
 
     async requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T> {
