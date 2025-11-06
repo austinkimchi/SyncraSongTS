@@ -118,9 +118,17 @@ const Account: React.FC<AccountProps> = ({ }) => {
   const fetchSessionAndInfo = useCallback(async () => {
     try {
       const infoRes = await api("/auth/info");
-      if (infoRes.status === 401 || !infoRes.ok) {
+
+      if (infoRes.status === 401) { //token expired or invalid
         setAccount(null);
-        spotifyAuthService.setStoredProfile(null);
+        clearLocalStorageKeys();
+        window.location.reload();
+        return;
+      }
+
+      if (!infoRes.ok) {
+        setAccount(null);
+        clearLocalStorageKeys();
         return;
       }
 
@@ -179,12 +187,7 @@ const Account: React.FC<AccountProps> = ({ }) => {
     return () => window.removeEventListener("auth-changed", onAuthChanged);
   }, [fetchSessionAndInfo]);
 
-  const handleLogout = async () => {
-    try {
-      await api("/auth/logout", { method: "POST" });
-    } catch { }
-    setAccount(null);
-    // Clear any old cached UI data you still keep around
+  const clearLocalStorageKeys = () => {
     localStorage.removeItem("user_data");
     localStorage.removeItem("apple-playlists");
     localStorage.removeItem("spotify-playlists");
@@ -196,11 +199,20 @@ const Account: React.FC<AccountProps> = ({ }) => {
         localStorage.removeItem(local);
       }
     }
+  };
+  const handleLogout = async () => {
+    try {
+      await api("/auth/logout", { method: "POST" });
+    } catch { }
+    setAccount(null);
+    // Clear any old cached UI data you still keep around
+    clearLocalStorageKeys();
+
     spotifyAuthService.setStoredProfile(null);
     sessionStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
     // Soft refresh to reset any protected views
-    setTimeout(() => window.location.reload(), 150);
+    // setTimeout(() => window.location.reload(), 150);
   };
 
   // Menu content when NOT logged in: show Login with <providers>
