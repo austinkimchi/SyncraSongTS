@@ -18,6 +18,7 @@ import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, get
 
 import { API_FULL_URL } from "../config";
 import { spotifyAuthService } from "../handler/spotifyAPI";
+import { clearStoredProviders, setStoredProviders } from "../auth/providerStorage";
 
 const buttonTheme = createTheme({
   typography: { fontFamily: "Fort" },
@@ -146,8 +147,8 @@ const Account: React.FC<AccountProps> = ({ }) => {
         const plat = mapProviderToPlatform(entry.provider);
         if (plat) providers.push(plat);
       }
-
-      localStorage.setItem("providers", JSON.stringify(providers));
+      
+      setStoredProviders(providers);
 
       const accountInfo: AccountInfo = {
         userID: userId,
@@ -193,7 +194,7 @@ const Account: React.FC<AccountProps> = ({ }) => {
     localStorage.removeItem("spotify-playlists");
     localStorage.removeItem("token");
     localStorage.removeItem("spotify-profile");
-    localStorage.removeItem("providers");
+    clearStoredProviders();
     for (let local of Object.keys(localStorage)) {
       if (local.startsWith("music")) {
         localStorage.removeItem(local);
