@@ -2,6 +2,7 @@ import { emitAuthChanged } from "../auth/emitAuthChanged";
 import { API_FULL_URL, APP_FULL_URL } from "../config";
 import Platform from "../types/platform";
 import type { PlatformAuthService } from "./PlatformAuthService";
+import { addStoredProvider, waitForProviders } from "../auth/providerStorage";
 
 declare const MusicKit: any;
 
@@ -89,18 +90,8 @@ class AppleMusicAuthService implements PlatformAuthService {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    const response = await fetch(`${API_FULL_URL}/auth/info`,
-      {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      }
-    );
-    if (!response.ok) return false;
-    const data = await response.json();
-    const appleOauth = data.oauth.find((o: any) => o.provider === "apple_music");
-
-    return !!appleOauth === true;
+    const providers = await waitForProviders();
+    return providers.includes(Platform.APPLE_MUSIC);
   }
 
   private async getMusicInstance(): Promise<any> {

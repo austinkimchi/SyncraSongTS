@@ -2,6 +2,7 @@ import { API_FULL_URL } from "../config";
 import Platform from "../types/platform";
 import type { OAuthCallbackResponse, PlatformAuthService } from "./PlatformAuthService";
 import { storePendingAccount, clearPendingAccount } from "./pendingAccount";
+import { addStoredProvider, waitForProviders } from "../auth/providerStorage";
 
 interface OAuthLinkResponse {
   state: string;
@@ -19,7 +20,8 @@ const STATE_STORAGE_KEY = "spotify-oauth-state";
 
 class SpotifyAuthService implements PlatformAuthService {
   async redirectToOAuth(): Promise<void> {
-    const payload = { provider: Platform.SPOTIFY, intent: "login" };
+    const hasToken = !!localStorage.getItem("token");
+    const payload = { provider: Platform.SPOTIFY, intent: hasToken ? "connect" : "login" };
 
     const response = await this.requestOAuthLink(payload);
     if (!response?.authorizeUrl || !response.state) {
@@ -88,17 +90,8 @@ class SpotifyAuthService implements PlatformAuthService {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    try {
-      const providers = localStorage.getItem("providers");
-      if (!providers) return false;
-
-      const parsedProviders: Platform[] = JSON.parse(providers);
-      if (!parsedProviders.includes(Platform.SPOTIFY)) return false;
-
-      return true;
-    } catch (error) {
-      return false;
-    }
+    const providers = await waitForProviders();
+    return providers.includes(Platform.SPOTIFY);
   }
 
   getStoredProfile(): SpotifyAccountProfile | null {
@@ -122,12 +115,18 @@ class SpotifyAuthService implements PlatformAuthService {
   }
 
   private async requestOAuthLink(payload: { provider: Platform; intent: string }): Promise<OAuthLinkResponse | null> {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const requestBodies: Array<{ method: string; body?: BodyInit; url: string; headers?: Record<string, string> }> = [
       {
         method: "POST",
         url: `${API_FULL_URL}/api/oauth/link`,
         body: JSON.stringify({ provider: payload.provider, intent: payload.intent, redirectUri: `${window.location.origin}/callback/spotify` }),
-        headers: { "Content-Type": "application/json" },
+        headers,
       }
     ];
     console.log(`${window.location.origin}/callback/spotify`);

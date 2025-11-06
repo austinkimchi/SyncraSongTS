@@ -2,13 +2,15 @@ import { API_FULL_URL } from "../config";
 import Platform from "../types/platform";
 import { OAuthCallbackResponse, PlatformAuthService } from "./PlatformAuthService";
 import { storePendingAccount, clearPendingAccount } from "./pendingAccount";
+import { addStoredProvider, waitForProviders } from "../auth/providerStorage";
 
 const PROFILE_STORAGE_KEY = "soundcloud-profile";
 const STATE_STORAGE_KEY = "soundcloud-oauth-state";
 
 class SoundCloudAuthService implements PlatformAuthService {
     async redirectToOAuth(): Promise<void> {
-        const payload = { provider: Platform.SOUNDCLOUD, intent: "login" };
+        const hasToken = !!localStorage.getItem("token");
+        const payload = { provider: Platform.SOUNDCLOUD, intent: hasToken ? "connect" : "login" };
 
         const response = await this.requestOAuthLink(payload);
         if (!response?.authorizeUrl || !response.state) {
@@ -66,23 +68,15 @@ class SoundCloudAuthService implements PlatformAuthService {
             storePendingAccount({ provider: Platform.SPOTIFY, state: data.state });
         } else if (data.info === "signin" || data.info === "connected") {
             clearPendingAccount();
+            addStoredProvider(Platform.SOUNDCLOUD);
             window.dispatchEvent(new Event("auth-changed"));
         }
         window.history.replaceState({}, document.title, "/");
     }
 
     async isLoggedIn(): Promise<boolean> {
-        try {
-            const providers = localStorage.getItem("providers");
-            if (!providers) return false;
-
-            const parsedProviders: Platform[] = JSON.parse(providers);
-            if (!parsedProviders.includes(Platform.SOUNDCLOUD)) return false;
-
-            return true;
-        } catch (error) {
-            return false;
-        }
+        const providers = await waitForProviders();
+        return providers.includes(Platform.SOUNDCLOUD);
     }
 
     getStoredProfile(): any | null {
@@ -107,11 +101,17 @@ class SoundCloudAuthService implements PlatformAuthService {
 
     private async requestOAuthLink(payload: { provider: Platform; intent: string; }): Promise<{ authorizeUrl: string; state: string; } | null> {
         try {
+            const token = localStorage.getItem("token");
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${API_FULL_URL}/api/oauth/link`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers,
                 body: JSON.stringify({ provider: payload.provider, intent: payload.intent, redirectUri: `${window.location.origin}/callback/soundcloud` }),
             });
 

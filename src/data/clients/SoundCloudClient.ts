@@ -35,7 +35,7 @@ export class SoundCloudClient extends PlatformClient {
 
     async getUserPlaylists(opts?: { fetch?: boolean }) {
         // Implementation for fetching user playlists from SoundCloud
-        return { items: [] as Playlist[] };
+        return { playlists: [] as Playlist[], updatedAt: new Date(0) };
     }
 
     async requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T> {

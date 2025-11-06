@@ -4,6 +4,7 @@ import { spotifyAuthService } from "../../handler/spotifyAPI";
 import { PlatformClient } from "./IPlatformClient";
 import { API_FULL_URL } from "../../config";
 import { emitAuthChanged } from "../../auth/emitAuthChanged";
+import { waitForProviders } from "../../auth/providerStorage";
 
 interface SpotifyPlaylistResponse {
   items: Array<{
@@ -30,12 +31,8 @@ export class SpotifyClient extends PlatformClient {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    const response = await fetch(`${API_FULL_URL}/auth/info`, { headers: this.headers });
-    if (!response.ok) return false;
-    const data = await response.json();
-    const spotifyOauth = data.oauth.find((o: any) => o.provider === "spotify");
-
-    return !!spotifyOauth === true;
+    const providers = await waitForProviders();
+    return providers.includes(Platform.SPOTIFY);
   }
 
   async getDisplayName() {
