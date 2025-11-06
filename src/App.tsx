@@ -75,8 +75,8 @@ const App: React.FC = () => {
       if (!loggedIn) return;
 
       const res = await client.getUserPlaylists({ fetch: !!options?.force });
-      setPlaylists((prev) => ({ ...prev, [platform]: res.items }));
-      setLastUpdated((prev) => ({ ...prev, [platform]: new Date() }));
+      setPlaylists((prev) => ({ ...prev, [platform]: res.playlists }));
+      setLastUpdated((prev) => ({ ...prev, [platform]: res.updatedAt.toLocaleString('en-US') }));
     } catch (err) {
       console.error(`Failed to fetch playlists for ${platform}`, err);
     }
@@ -107,7 +107,7 @@ const App: React.FC = () => {
 
   // Pending helpers
   const addToPending = useCallback((pl: Playlist, destination: { side: "left" | "right"; platform: Platform }) => {
-    setPendingPlaylists((prev) => { return (prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.PENDING }])});
+    setPendingPlaylists((prev) => { return (prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.PENDING }]) });
     setPendingTarget(destination);
   }, []);
 

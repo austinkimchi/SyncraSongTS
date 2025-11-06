@@ -48,10 +48,11 @@ export class SpotifyClient extends PlatformClient {
     const res = await fetch(`${API_FULL_URL}/api/spotify/fetchPlaylist?fetch=${opts?.fetch ? 'true' : 'false'}`, {
       headers: this.headers,
     });
-    if (!res.ok) return { items: [] };
-    const data = await res.json() as { playlists: Playlist[] };
+    if (!res.ok) return { playlists: [], updatedAt: new Date(0) };
+    const data = await res.json() as { playlists: Playlist[], updatedAt: string };
+    const updatedAt = new Date(data.updatedAt);
 
-    return { items: data.playlists };
+    return { playlists: data.playlists, updatedAt };
   }
 
   async requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T> {

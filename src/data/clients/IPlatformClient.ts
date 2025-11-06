@@ -25,8 +25,8 @@ export abstract class PlatformClient {
   abstract getUserPlaylists(
     opts?: PlaylistQueryOptions,
   ): Promise<{
-    items: Playlist[];
-    next?: boolean;
+    playlists: Playlist[];
+    updatedAt: Date;
   }>;
 
   abstract requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T>;

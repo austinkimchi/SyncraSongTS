@@ -30,11 +30,13 @@ export class AppleMusicClient extends PlatformClient {
     const res = await fetch(`${API_FULL_URL}/api/apple_music/fetchPlaylist?fetch=${_opts?.fetch ? 'true' : 'false'}`, {
       headers: this.headers,
     });
-    
-    if (!res.ok) return { items: [] };
 
-    const data = await res.json() as { playlists: Playlist[] };
-    return { items: data.playlists }; 
+    if (!res.ok) return { playlists: [], updatedAt: new Date(0) };
+
+    const data = await res.json() as { playlists: Playlist[], updatedAt: string };
+    const updatedAt = new Date(data.updatedAt);
+
+    return { playlists: data.playlists, updatedAt };
   }
 
   // TODO
