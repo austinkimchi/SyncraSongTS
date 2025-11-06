@@ -1,3 +1,4 @@
+import { Platform } from "./enums/platform.enum";
 import AppleLogo from "../assets/provider/applemusic.svg";
 import SpotifyLogo from "../assets/provider/spotify.png";
 import SoundCloudLogo from "../assets/provider/SoundCloud.png";
@@ -9,11 +10,6 @@ import { AppleMusicClient } from "../data/clients/AppleMusicClient";
 import { handleSoundCloudCallback, redirectToSoundCloudOAuth } from "../handler/soundAPI";
 import { SoundCloudClient } from "../data/clients/SoundCloudClient";
 
-enum Platform {
-    SPOTIFY = "spotify",
-    APPLE_MUSIC = "apple_music",
-    SOUNDCLOUD = "soundcloud"
-}
 
 interface PlatformInfo {
     displayName: string;
@@ -36,7 +32,7 @@ const PLATFORMS: Record<Platform, PlatformInfo> = {
             "user-read-private",
             "user-read-email"
         ],
-        client: SpotifyClient  
+        client: SpotifyClient
     },
     [Platform.APPLE_MUSIC]: {
         displayName: "Apple Music",
@@ -62,7 +58,6 @@ const getPlatformDisplayName = (p: Platform): string => PLATFORMS[p].displayName
 const getPlatformOAuthFunction = (p: Platform): (() => Promise<void>) => PLATFORMS[p].OAuthFunction;
 const getPlatformCallbackFunction = (p: Platform): (() => Promise<void>) | undefined => PLATFORMS[p].CallbackFunction;
 
-export default Platform;
 export {
     getPlatformInfo,
     getPlatformLogo,
@@ -71,3 +66,4 @@ export {
     getPlatformCallbackFunction,
     PLATFORMS
 }
+export default Platform;
