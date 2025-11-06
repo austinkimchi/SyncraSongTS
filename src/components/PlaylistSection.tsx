@@ -15,12 +15,13 @@ import { state } from "../types/status";
 interface PlaylistSectionProps {
   playlists: Playlist[];
   platform: Platform;
+  side: "left" | "right";
   lastUpdated?: Date | null;
   onRefresh: () => void;
-  onAddToPending: (p: Playlist, destination: Platform) => void;
+  onAddToPending: (p: Playlist, destination: { platform: Platform; side: "left" | "right" }) => void;
   onChangePlatform: (p: Platform) => void;
   linked: boolean;
-  needsScopeUpgrade?: boolean;
+  needsScopeUpdate?: boolean;
   onConnect: () => void;
   onReauthorize: () => void;
   children?: React.ReactNode;
@@ -28,6 +29,7 @@ interface PlaylistSectionProps {
 
 const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   platform,
+  side,
   playlists,
   lastUpdated,
   onRefresh,
@@ -35,14 +37,14 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   onChangePlatform,
   children,
   linked,
-  needsScopeUpgrade,
+  needsScopeUpdate,
   onConnect,
   onReauthorize,
 }) => {
   const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, any>(() => ({
     accept: ["DRAG_FROM_PROVIDER"],
     canDrop: (pl) => pl.platform !== platform,
-    drop: (pl) => onAddToPending(pl, platform),
+    drop: (pl) => onAddToPending(pl, { platform, side }),
     collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
   }));
 
@@ -111,7 +113,7 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             <Button variant="contained" size="small" onClick={onConnect}>
               Connect {getPlatformDisplayName(platform)}
             </Button>
-          ) : needsScopeUpgrade ? (
+          ) : needsScopeUpdate ? (
             <Button variant="contained" size="small" onClick={onReauthorize}>
               Reauthorize {getPlatformDisplayName(platform)}
             </Button>
@@ -127,7 +129,7 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         playlists={playlists}
         platform={platform}
         status={state.PENDING}
-        onAdd={(pl) => onAddToPending(pl, platform)}
+        onAdd={(pl) => onAddToPending(pl, { platform, side })}
         onRemove={() => { }}
       />
 
