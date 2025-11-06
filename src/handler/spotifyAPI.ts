@@ -88,7 +88,17 @@ class SpotifyAuthService implements PlatformAuthService {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    return Promise.resolve(!!localStorage.getItem("token"));
+    try {
+      const providers = localStorage.getItem("providers");
+      if (!providers) return false;
+
+      const parsedProviders: Platform[] = JSON.parse(providers);
+      if (!parsedProviders.includes(Platform.SPOTIFY)) return false;
+
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   getStoredProfile(): SpotifyAccountProfile | null {

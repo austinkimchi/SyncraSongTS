@@ -2,6 +2,7 @@ import Platform from "../types/platform";
 import type { IPlatformClient } from "../data/clients/IPlatformClient";
 import { SpotifyClient } from "../data/clients/SpotifyClient";
 import { AppleMusicClient } from "../data/clients/AppleMusicClient";
+import { SoundCloudClient } from "../data/clients/SoundCloudClient";
 
 class PlatformClientRegistry {
   private readonly clients = new Map<Platform, IPlatformClient>();
@@ -19,6 +20,8 @@ class PlatformClientRegistry {
         return new SpotifyClient();
       case Platform.APPLE_MUSIC:
         return new AppleMusicClient();
+      case Platform.SOUNDCLOUD:
+        return new SoundCloudClient();
       default:
         throw new Error(`Unsupported platform: ${platform}`);
     }

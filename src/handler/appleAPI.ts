@@ -89,17 +89,18 @@ class AppleMusicAuthService implements PlatformAuthService {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    try {
-      const providers = localStorage.getItem("providers");
-      if (!providers) return false;
+    const response = await fetch(`${API_FULL_URL}/auth/info`,
+      {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+    if (!response.ok) return false;
+    const data = await response.json();
+    const appleOauth = data.oauth.find((o: any) => o.provider === "apple_music");
 
-      const parsedProviders: Platform[] = JSON.parse(providers);
-      if (!parsedProviders.includes(Platform.APPLE_MUSIC)) return false;
-      
-      return true;
-    } catch (error) {
-      return false;
-    }
+    return !!appleOauth === true;
   }
 
   private async getMusicInstance(): Promise<any> {

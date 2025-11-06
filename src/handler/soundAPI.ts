@@ -72,20 +72,15 @@ class SoundCloudAuthService implements PlatformAuthService {
     }
 
     async isLoggedIn(): Promise<boolean> {
-        const token = localStorage.getItem("token");
-        if (!token) return false;
-
         try {
-            const response = await fetch(`${API_FULL_URL}/api/soundcloud/me`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
-            });
+            const providers = localStorage.getItem("providers");
+            if (!providers) return false;
 
-            return response.ok;
+            const parsedProviders: Platform[] = JSON.parse(providers);
+            if (!parsedProviders.includes(Platform.SOUNDCLOUD)) return false;
+
+            return true;
         } catch (error) {
-            console.error("Error checking SoundCloud login status:", error);
             return false;
         }
     }
