@@ -16,6 +16,10 @@ export function useLinkedStatus(platform: Platform) {
     checkedAt: Date.now(),
   });
 
+  useEffect(() => {
+    setStatus({ linked: false, checkedAt: Date.now() });
+  }, [platform]);
+
   const check = useCallback(async () => {
     const client = getClient(platform);
     if (!client) {
@@ -23,7 +27,6 @@ export function useLinkedStatus(platform: Platform) {
       return false;
     }
     try {
-      // Prefer a richer API if your clients expose it; fall back to isLoggedIn()
       const info =
         typeof (client as any).getAuthState === "function"
           ? await (client as any).getAuthState()
