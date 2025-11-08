@@ -16,6 +16,7 @@ import { } from "./auth/providerStorage"; // runs on import
 
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY, DEMO_PLAYLISTS_SOUNDCLOUD } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
+import { commitPendingPlaylists } from "./handler/playlistTransfer";
 
 import { useLinkedStatus } from "./auth/useLinkedStatus";
 import { emitAuthChanged } from "./auth/emitAuthChanged";
@@ -126,6 +127,27 @@ const App: React.FC = () => {
     setPendingPlaylists([]);
     setPendingTarget(null);
   }, []);
+
+  const commitPendingTransfers = useCallback(async () => {
+    if (!pendingTarget || pendingPlaylists.length === 0) {
+      return;
+    }
+
+    const refreshPlatforms = new Set<Platform>([pendingTarget.platform]);
+    pendingPlaylists.forEach((playlist) => {
+      refreshPlatforms.add(playlist.platform);
+    });
+
+    try {
+      await commitPendingPlaylists(pendingPlaylists, pendingTarget.platform);
+      cancelPending();
+      refreshPlatforms.forEach((platform) => {
+        fetchPlaylists(platform, { force: true });
+      });
+    } catch (error) {
+      console.error("Failed to commit pending playlists", error);
+    }
+  }, [pendingTarget, pendingPlaylists, cancelPending, fetchPlaylists]);
 
   // Render helpers
   const leftPlaylists = playlists[leftPanelPlatform] ?? [];
@@ -240,7 +262,7 @@ const App: React.FC = () => {
           {pendingIsOnLeft && (
             <PendingSection
               playlists={pendingPlaylists}
-              onCommit={() => { }}
+              onCommit={commitPendingTransfers}
               onRemoveAll={cancelPending}
               onRemove={removeFromPending}
             />
@@ -268,7 +290,7 @@ const App: React.FC = () => {
           {pendingIsOnRight && (
             <PendingSection
               playlists={pendingPlaylists}
-              onCommit={() => { }}
+              onCommit={commitPendingTransfers}
               onRemoveAll={cancelPending}
               onRemove={removeFromPending}
             />
