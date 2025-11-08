@@ -109,7 +109,7 @@ const App: React.FC = () => {
 
   // Pending helpers
   const addToPending = useCallback((pl: Playlist, destination: { side: "left" | "right"; platform: Platform }) => {
-    setPendingPlaylists((prev) => { return (prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.PENDING }]) });
+    setPendingPlaylists((prev) => { return (prev.some((p) => p.id === pl.id) ? prev : [...prev, { ...pl, status: state.QUEUED }]) });
     setPendingTarget(destination);
   }, []);
 

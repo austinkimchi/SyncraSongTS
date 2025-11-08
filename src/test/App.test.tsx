@@ -26,7 +26,7 @@ const sampleList: Playlist[] = [
         href: '',
         image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200005caf330ca3a3bfaf8b18407fb33e',
         isPublic: false,
-        status: state.PENDING
+        status: state.QUEUED
     },
     {
         id: '2',

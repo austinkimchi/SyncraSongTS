@@ -1,5 +1,5 @@
 export enum state {
-    PENDING = "pending",
+    QUEUED = "queued",
     PROCESSING = "processing",
     SUCCESS = "success",
     ERROR = "error"

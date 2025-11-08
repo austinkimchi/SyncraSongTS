@@ -27,7 +27,7 @@ const sampleList: Playlist[] = [
         href: '',
         image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200005caf330ca3a3bfaf8b18407fb33e',
         isPublic: false,
-        status: state.PENDING
+        status: state.QUEUED
     },
     {
         id: '2',
@@ -46,7 +46,7 @@ const sampleList: Playlist[] = [
         platform: Platform.SOUNDCLOUD,
         href: '',
         image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200008e2c21cf047fac53f26680dcad78',
-         isPublic: true, 
+        isPublic: true,
         status: state.SUCCESS
     },
 ];
@@ -63,6 +63,11 @@ describe("PlaylistSection", () => {
                 playlists={[]}
                 onRefresh={() => { }}
                 onAddToPending={() => { }}
+                linked={true}
+                onChangePlatform={() => { }}
+                onConnect={() => { }}
+                onReauthorize={() => { }}
+                side="left"
             />
         );
         expect(screen.getByAltText(/spotify logo/i)).toBeInTheDocument();
@@ -76,6 +81,11 @@ describe("PlaylistSection", () => {
                 playlists={[]}
                 onRefresh={() => { }}
                 onAddToPending={() => { }}
+                onChangePlatform={() => { }}
+                side="left"
+                linked={true}
+                onConnect={() => { }}
+                onReauthorize={() => { }}
             />
         );
         // click header to open menu
@@ -96,6 +106,11 @@ describe("PlaylistSection", () => {
                 lastUpdated={d}
                 onRefresh={() => { }}
                 onAddToPending={() => { }}
+                onChangePlatform={() => { }}
+                side="left"
+                linked={true}
+                onConnect={() => { }}
+                onReauthorize={() => { }}
             />
         );
         expect(screen.getByText(/Last updated:/i)).toBeInTheDocument();
@@ -109,6 +124,11 @@ describe("PlaylistSection", () => {
                 playlists={[]}
                 onRefresh={() => { }}
                 onAddToPending={() => { }}
+                onChangePlatform={() => { }}
+                side="left"
+                linked={true}
+                onConnect={() => { }}
+                onReauthorize={() => { }}
             />
         );
         // not be visible
@@ -124,6 +144,11 @@ describe("PlaylistSection", () => {
                 playlists={[]}
                 onRefresh={() => { }}
                 onAddToPending={() => { }}
+                onChangePlatform={() => { }}
+                side="left"
+                linked={true}
+                onConnect={() => { }}
+                onReauthorize={() => { }}
             />
         );
         expect(screen.getByText("Refresh")).toBeInTheDocument();
@@ -137,6 +162,11 @@ describe("PlaylistSection", () => {
                 playlists={sampleList}
                 onRefresh={() => { }}
                 onAddToPending={onAdd}
+                onChangePlatform={() => { }}
+                side="left"
+                linked={true}
+                onConnect={() => { }}
+                onReauthorize={() => { }}
             />
         );
         // Simulate drop by calling prop directly (TestBackend drag sim is verbose)

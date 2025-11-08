@@ -20,7 +20,7 @@ const PendingSection: React.FC<PendingPlaylistProps> = ({
       <PlaylistCollection
         playlists={playlists}
         platform={playlists[0]?.platform || null}
-        status={state.PENDING}
+        status={state.QUEUED}
         onRemove={onRemove}
       />
       <button onClick={onCommit}>Commit Transfer</button>

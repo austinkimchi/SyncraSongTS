@@ -18,7 +18,7 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   onRemove,
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: status === state.PENDING ? "DRAG_FROM_PENDING" : "DRAG_FROM_PROVIDER",
+    type: status === state.QUEUED ? "DRAG_FROM_PENDING" : "DRAG_FROM_PROVIDER",
     item: { id, name, image, trackCount, status, platform, description },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
@@ -26,7 +26,7 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   }));
 
   const handleClick = () => {
-    if (status === state.PENDING && onRemove)
+    if (status === state.QUEUED && onRemove)
       onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
   };
 

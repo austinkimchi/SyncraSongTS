@@ -21,7 +21,7 @@ function renderDnd(ui: React.ReactElement) {
 }
 
 const sampleList: Playlist[] = [
-    { id: '1', name: 'Chill Vibes', trackCount: 21, platform: Platform.SPOTIFY, href: '', image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200005caf330ca3a3bfaf8b18407fb33e', isPublic: false, status: state.PENDING },
+    { id: '1', name: 'Chill Vibes', trackCount: 21, platform: Platform.SPOTIFY, href: '', image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200005caf330ca3a3bfaf8b18407fb33e', isPublic: false, status: state.QUEUED },
     { id: '2', name: 'Sleep', trackCount: 22, platform: Platform.APPLE_MUSIC, href: '', image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200005caf1cef0cee1e498abb8e74955f', isPublic: true, status: state.SUCCESS },
     { id: '3', name: 'Today\'s Top Hits', trackCount: 23, platform: Platform.SOUNDCLOUD, href: '', image: 'https://image-cdn-ak.spotifycdn.com/image/ab67fb8200008e2c21cf047fac53f26680dcad78', isPublic: true, status: state.SUCCESS },
 ];
