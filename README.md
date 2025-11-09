@@ -34,17 +34,16 @@ It connects to the companion back-end service, [SyncraSongTSAPI](https://github.
 > Spotify accounts can be either free or premium. 
 ---
 
-## 🚧 In Progress  
-- [ ] Transfer queuing system / load balancing  
-- [ ] Pane switching (selectable left/right platform panes)  
-- [ ] SoundCloud integration  
+## 🚧 In Progress
+- [ ] SoundCloud Matching Algorithm Improvements
+- [ ] Song Caching
 
 ---
 
 ## 📝 TODO  
 - [ ] List view for playlists (in addition to grid view)
 - [ ] Spotify: Fetch full user library (Blends, Liked Songs, etc.)  
-- [ ] User settings panel  
+- [ ] User settings panel (e.g., default platform, theme preference)
 - [ ] UI rebrand after feature completion  
 - [ ] Add support for additional platforms (Tidal, YouTube Music, etc.)  
 
@@ -55,8 +54,11 @@ It connects to the companion back-end service, [SyncraSongTSAPI](https://github.
 - [x] RESTful API integration with back-end  
 - [x] Drag-and-drop UI interaction  
 - [x] OAuth 2.x authentication via back-end  
-- [x] Cross-platform music transfer: **Spotify ↔ Apple Music**  
+- [x] Cross-platform music transfer: **Spotify ↔ Apple Music ↔ SoundCloud**
 - [x] Dark / Light theme toggle  
+- [x] Transfer queuing system / load balancing
+- [x] Pane switching (selectable left/right platform panes)  
+
 
 ---
 
