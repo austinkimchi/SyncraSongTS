@@ -2,6 +2,8 @@ import Platform from "../../types/platform";
 import { PlatformClient } from "./IPlatformClient";
 import { soundCloudAuthService } from "../../handler/soundAPI";
 import type { Playlist } from "../../types/playlist";
+import { API_FULL_URL } from "../../config";
+import { emitAuthChanged } from "../../auth/emitAuthChanged";
 
 
 export class SoundCloudClient extends PlatformClient {
@@ -34,26 +36,25 @@ export class SoundCloudClient extends PlatformClient {
     }
 
     async getUserPlaylists(opts?: { fetch?: boolean }) {
-        // Implementation for fetching user playlists from SoundCloud
-        return { playlists: [] as Playlist[], updatedAt: new Date(0) };
+        const res = await fetch(`${API_FULL_URL}/api/soundcloud/fetchPlaylist?fetch=${opts?.fetch ? 'true' : 'false'}`, {
+            headers: this.headers,
+        });
+        if (!res.ok) return { playlists: [], updatedAt: new Date(0) };
+        const data = await res.json() as { playlists: Playlist[], updatedAt: string };
+        const updatedAt = new Date(data.updatedAt);
+        return { playlists: data.playlists, updatedAt };
     }
 
     async requestWithAuth<T>(platform: Platform, input: RequestInfo, init?: RequestInit): Promise<T> {
-        const headers = {
-            ...(init?.headers || {}),
-            ...this.headers,
-        };
-
-        const response = await fetch(input, {
-            ...init,
-            headers,
-        });
-
-        if (!response.ok) {
-            throw new Error(`Request failed with status ${response.status}`);
+        const res = await fetch(input, init);
+        if (res.status === 401 || res.status === 403) {
+            // Token might be expired or invalid, emit auth-changed event
+            emitAuthChanged(platform);
         }
-
-        return response.json() as Promise<T>;
+        if (!res.ok) {
+            throw new Error(`Request failed with status ${res.status}: ${res.statusText}`);
+        }
+        return res.json() as Promise<T>;
     }
 
 }

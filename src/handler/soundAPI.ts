@@ -68,7 +68,6 @@ class SoundCloudAuthService implements PlatformAuthService {
             storePendingAccount({ provider: Platform.SPOTIFY, state: data.state });
         } else if (data.info === "signin" || data.info === "connected") {
             clearPendingAccount();
-            addStoredProvider(Platform.SOUNDCLOUD);
             window.dispatchEvent(new Event("auth-changed"));
         }
         window.history.replaceState({}, document.title, "/");
@@ -112,7 +111,12 @@ class SoundCloudAuthService implements PlatformAuthService {
             const response = await fetch(`${API_FULL_URL}/api/oauth/link`, {
                 method: "POST",
                 headers,
-                body: JSON.stringify({ provider: payload.provider, intent: payload.intent, redirectUri: `${window.location.origin}/callback/soundcloud` }),
+                body: JSON.stringify({
+                    provider: payload.provider,
+                    intent: payload.intent,
+                    redirectUri: `${window.location.origin}/callback/soundcloud`,
+                    token: token
+                }),
             });
 
             if (!response.ok) {
@@ -123,7 +127,7 @@ class SoundCloudAuthService implements PlatformAuthService {
             const data = await response.json();
             return {
                 authorizeUrl: data.authorizeUrl,
-                state: data.state,
+                state: data.state
             };
         } catch (error) {
             console.error("Error requesting SoundCloud OAuth link:", error);
