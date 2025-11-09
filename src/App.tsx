@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import DarkLogo from "./assets/logo/logo-dark.svg";
 
 // Components
@@ -17,6 +17,7 @@ import { } from "./auth/providerStorage"; // runs on import
 import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY, DEMO_PLAYLISTS_SOUNDCLOUD } from "./data/demoPlaylists";
 import { getClient } from "./handler/getClient";
 import { commitPendingPlaylists } from "./handler/playlistTransfer";
+import { getTransferStatus, normalizeStatus } from "./handler/transferStatus";
 
 import { useLinkedStatus } from "./auth/useLinkedStatus";
 import { emitAuthChanged } from "./auth/emitAuthChanged";
@@ -27,6 +28,14 @@ import {
 } from "./handler/pendingAccount";
 
 import "./css/App.css";
+
+interface TransferJob {
+  id: string;
+  playlist: Playlist;
+  destination: Platform;
+  status: state;
+  pollable: boolean;
+}
 
 const App: React.FC = () => {
   // Platform left/right panels
@@ -40,6 +49,8 @@ const App: React.FC = () => {
   // Pending playlists
   const [pendingTarget, setPendingTarget] = useState<{ side: "left" | "right"; platform: Platform } | null>(null);
   const [pendingPlaylists, setPendingPlaylists] = useState<Playlist[]>([]);
+  const [transferJobs, setTransferJobs] = useState<TransferJob[]>([]);
+  const transferJobsRef = useRef<TransferJob[]>([]);
 
   // Account creation modal state
   const [pendingAccount, setPendingAccount] = useState<PendingAccountInfo | null>(() => getPendingAccount());
@@ -83,6 +94,10 @@ const App: React.FC = () => {
       console.error(`Failed to fetch playlists for ${platform}`, err);
     }
   }, []);
+
+  useEffect(() => {
+    transferJobsRef.current = transferJobs;
+  }, [transferJobs]);
 
   // Demo mode/real data toggle
   useEffect(() => {
@@ -139,7 +154,45 @@ const App: React.FC = () => {
     });
 
     try {
-      await commitPendingPlaylists(pendingPlaylists, pendingTarget.platform);
+      const response = await commitPendingPlaylists(pendingPlaylists, pendingTarget.platform);
+
+      const failedSet = new Set(response?.failed_ids ?? []);
+      const queuedIds = response?.ids ?? [];
+      let queuedIndex = 0;
+
+      const newJobs = pendingPlaylists.map<TransferJob>((playlist) => {
+        const destinationPlaylist: Playlist = {
+          ...playlist,
+          platform: pendingTarget.platform,
+          status: failedSet.has(playlist.id) ? state.ERROR : state.PROCESSING,
+        };
+
+        if (failedSet.has(playlist.id)) {
+          return {
+            id: `${playlist.id}-failed-${Date.now()}`,
+            playlist: destinationPlaylist,
+            destination: pendingTarget.platform,
+            status: state.ERROR,
+            pollable: false,
+          };
+        }
+
+        const jobId = queuedIds[queuedIndex];
+        const hasTransferId = typeof jobId === "string" && jobId.length > 0;
+        if (hasTransferId) {
+          queuedIndex += 1;
+        }
+
+        return {
+          id: hasTransferId ? jobId : `${playlist.id}-${Date.now()}`,
+          playlist: destinationPlaylist,
+          destination: pendingTarget.platform,
+          status: state.PROCESSING,
+          pollable: hasTransferId,
+        };
+      });
+
+      setTransferJobs((prev) => [...prev, ...newJobs]);
       cancelPending();
       refreshPlatforms.forEach((platform) => {
         fetchPlaylists(platform, { force: true });
@@ -149,9 +202,25 @@ const App: React.FC = () => {
     }
   }, [pendingTarget, pendingPlaylists, cancelPending, fetchPlaylists]);
 
+  const getPlaylistsForPlatform = useCallback((platform: Platform) => {
+    const platformPlaylists = playlists[platform] ?? [];
+    const transfersForPlatform = transferJobs
+      .filter((job) => job.destination === platform)
+      .map((job) => job.playlist);
+
+    if (transfersForPlatform.length === 0) {
+      return platformPlaylists;
+    }
+
+    const transferIds = new Set(transfersForPlatform.map((pl) => pl.id));
+    const filteredPlaylists = platformPlaylists.filter((pl) => !transferIds.has(pl.id));
+    return [...transfersForPlatform, ...filteredPlaylists];
+  }, [playlists, transferJobs]);
+
+  const leftPlaylists = useMemo(() => getPlaylistsForPlatform(leftPanelPlatform), [getPlaylistsForPlatform, leftPanelPlatform]);
+  const rightPlaylists = useMemo(() => getPlaylistsForPlatform(rightPanelPlatform), [getPlaylistsForPlatform, rightPanelPlatform]);
+
   // Render helpers
-  const leftPlaylists = playlists[leftPanelPlatform] ?? [];
-  const rightPlaylists = playlists[rightPanelPlatform] ?? [];
   const pendingIsOnLeft = pendingTarget?.side === "left";
   const pendingIsOnRight = pendingTarget?.side === "right";
 
@@ -219,6 +288,94 @@ const App: React.FC = () => {
   useEffect(() => {
     setPendingTarget((prev) => (prev?.side === "right" ? { side: "right", platform: rightPanelPlatform } : prev));
   }, [rightPanelPlatform]);
+
+  useEffect(() => {
+    if (!transferJobs.some((job) => job.pollable && job.status !== state.SUCCESS && job.status !== state.ERROR)) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const pollTransfers = async () => {
+      if (cancelled) {
+        return;
+      }
+
+      const jobsToPoll = transferJobsRef.current.filter(
+        (job) => job.pollable && job.status !== state.SUCCESS && job.status !== state.ERROR,
+      );
+
+      if (jobsToPoll.length === 0) {
+        return;
+      }
+
+      const results = await Promise.all(
+        jobsToPoll.map(async (job) => {
+          try {
+            const statusResponse = await getTransferStatus(job.id);
+            const normalisedStatus = normalizeStatus(statusResponse.status);
+            return {
+              job,
+              status: normalisedStatus ?? job.status,
+            };
+          } catch (pollError) {
+            console.error(`Failed to poll transfer ${job.id}`, pollError);
+            return {
+              job,
+              status: state.ERROR,
+            };
+          }
+        }),
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      const jobsWithStatusChanges = results.filter(({ job, status }) => job.status !== status);
+      if (jobsWithStatusChanges.length === 0) {
+        return;
+      }
+
+      setTransferJobs((prev) =>
+        prev.map((job) => {
+          const update = results.find((result) => result.job.id === job.id);
+          if (!update) {
+            return job;
+          }
+
+          const nextStatus = update.status;
+          const nextPollable = nextStatus === state.PROCESSING || nextStatus === state.QUEUED;
+
+          return {
+            ...job,
+            status: nextStatus,
+            pollable: nextPollable,
+            playlist: {
+              ...job.playlist,
+              status: nextStatus,
+            },
+          };
+        }),
+      );
+
+      results.forEach(({ job, status }) => {
+        if (status === state.SUCCESS) {
+          fetchPlaylists(job.destination, { force: true });
+          window.setTimeout(() => {
+            setTransferJobs((prev) => prev.filter((existing) => existing.id !== job.id));
+          }, 4000);
+        }
+      });
+    };
+
+    pollTransfers();
+    const intervalId = window.setInterval(pollTransfers, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [transferJobs, fetchPlaylists]);
 
   // When a panel switches platform, proactively refresh its auth status
   useEffect(() => { leftLink.check(); }, [leftPanelPlatform]);

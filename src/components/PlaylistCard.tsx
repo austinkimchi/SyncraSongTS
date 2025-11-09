@@ -37,6 +37,18 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
       onClick={handleClick} // On click will opened detailed view, future feature
       data-testid={`playlist-card-${id}`}
     >
+      {(status === state.PROCESSING || status === state.QUEUED) && (
+        <div className="playlist-status-badge playlist-status-badge--processing">
+          <span className="playlist-status-spinner" aria-hidden="true" />
+          <span>Transferring…</span>
+        </div>
+      )}
+      {status === state.SUCCESS && (
+        <div className="playlist-status-badge playlist-status-badge--success">Transfer complete</div>
+      )}
+      {status === state.ERROR && (
+        <div className="playlist-status-badge playlist-status-badge--error">Transfer failed</div>
+      )}
       <div>
         <img
           src={image || PlaceholderNoImage}

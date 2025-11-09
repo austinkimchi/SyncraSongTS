@@ -11,6 +11,7 @@
   transition: transform 0.2s ease-in-out;
 
   cursor: grab;
+  position: relative;
 }
 
 .playlist-component:active {
@@ -44,6 +45,54 @@
 .playlist-song-count {
   font-size: 0.9rem;
   color: #666;
+}
+
+.playlist-status-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.playlist-status-spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 2px solid rgba(37, 99, 235, 0.4);
+  border-top-color: rgba(37, 99, 235, 1);
+  animation: playlist-status-spin 1s linear infinite;
+}
+
+.playlist-status-badge--processing {
+  color: #1d4ed8;
+}
+
+.playlist-status-badge--success {
+  color: #047857;
+}
+
+.playlist-status-badge--error {
+  color: #b91c1c;
+}
+
+@keyframes playlist-status-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .spotify-gradient {

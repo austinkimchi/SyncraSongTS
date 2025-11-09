@@ -1,6 +1,7 @@
 import { API_FULL_URL } from "../config";
 import type { Playlist } from "../types/playlist";
 import Platform from "../types/platform";
+import { state } from "../types/status";
 
 export const TRANSFER_ENDPOINT = `${API_FULL_URL}/api/transfer`;
 
@@ -10,9 +11,10 @@ export interface TransferRequestItem {
   destPlatform: Platform;
 }
 
-export interface TransferResponse {
-  success?: boolean;
-  [key: string]: unknown;
+export interface TransferQueueResponse {
+  ids: string[];
+  failed_ids: string[];
+  status: state | string;
 }
 
 export class PlaylistTransferError extends Error {
@@ -41,7 +43,7 @@ export const buildTransferPayload = (
 export const commitPendingPlaylists = async (
   playlists: Playlist[],
   destination: Platform
-): Promise<TransferResponse | void> => {
+): Promise<TransferQueueResponse | void> => {
   if (playlists.length === 0) {
     return;
   }
