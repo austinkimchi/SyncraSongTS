@@ -125,7 +125,12 @@ class SpotifyAuthService implements PlatformAuthService {
       {
         method: "POST",
         url: `${API_FULL_URL}/api/oauth/link`,
-        body: JSON.stringify({ provider: payload.provider, intent: payload.intent, redirectUri: `${window.location.origin}/callback/spotify` }),
+        body: JSON.stringify({
+          provider: payload.provider, 
+          intent: payload.intent, 
+          redirectUri: `${window.location.origin}/callback/spotify`,
+          token: token
+        }),
         headers,
       }
     ];
