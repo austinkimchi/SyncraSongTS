@@ -21,7 +21,7 @@
 This is a **public repository** currently under active development.  
 **Not intended for redistribution or derivative use.**
 
-Hosted at: [https://ssv2.austin.kim/](https://ssv2.austin.kim/)
+Hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
 ---
 
