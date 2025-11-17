@@ -40,7 +40,7 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   return (
     <div
       ref={drag}
-      className={`playlist-component ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
+      className={`playlist-component flex flex-row lg:flex-col align-center text-center p-[8px] lg:p-[14px] rounded-md cursor-grab ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
       onClick={handleClick} // On click will opened detailed view, future feature
       data-testid={`playlist-card-${id}`}
     >
@@ -52,29 +52,29 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
       {status === state.SUCCESS && (
         <div className="playlist-status-badge">
           <img
-          src={completeLogo}
-          width="25px"
-          alt="Transfer Complete"
+            src={completeLogo}
+            width="25px"
+            alt="Transfer Complete"
+            className="w-[12px] lg:w-[25px]"
           />
         </div>
       )}
       {status === state.ERROR && (
         <div className="playlist-status-badge">Transfer failed</div>
       )}
-      <div>
-        <img
-          src={image || PlaceholderNoImage}
-          alt={name}
-          className="playlist-image aspect-square object-cover"
-        />
 
+      <img
+        src={image || PlaceholderNoImage}
+        alt={name}
+        className="w-12 h-12 lg:w-[100%] lg:h-auto rounded-md mb-[4px] aspect-square object-cover select-none"
+      />
 
-        <h3 className={`h-10 wrap-break-word text-pretty text-sm font-medium max-w-full text-black line-clamp-2`}>
+      <div className="self-center pl-1 text-left lg:text-center">
+        <p className={`line-clamp-2 leading-none text-sm font-extrabold text-black overflow-hidden text-clip lg:mt-2 lg:line-clamp-1`}>
           {name}
-        </h3>
+        </p>
+        <p className="playlist-song-count text-black text-sm">{trackCount} songs</p>
       </div>
-
-      <p className="playlist-song-count">{trackCount} songs</p>
     </div>
 
 

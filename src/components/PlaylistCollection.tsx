@@ -9,7 +9,7 @@ const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
   onAdd,
 }) => {
   return (
-    <div className="grid playlist-collection display-grid md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
+    <div className="grid playlist-collection display-grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-4">
       {playlists?.map((pl) => (
         <PlaylistCard
           key={pl.id}

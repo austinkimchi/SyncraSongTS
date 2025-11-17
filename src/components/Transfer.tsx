@@ -92,7 +92,7 @@ const Transfer: React.FC = () => {
                     <div className="rounded-full flex items-center justify-center">
                         <img src={getPlatformLogo(platform)} alt={`${platform} logo`} className="w-10 rounded-full" />
                     </div>
-                    <p className="text-lg md:text-2xl font-bold text-thirdary font-extrabold">
+                    <p className="text-xl sm:text-2xl font-bold text-thirdary font-extrabold">
                         {getPlatformDisplayName(platform)}
                     </p>
                 </div>
@@ -115,8 +115,8 @@ const Transfer: React.FC = () => {
     return (
         <>
             {/* Notch absolute container for the components of transfer */}
-            <div className="bg-bg1 px-6 py-4 drop-shadow rounded-[50px] gap-3 justify-center mx-auto text-center w-[30%] absolute left-[50%] top-3 justify-items-center -translate-x-[50%] hidden md:flex">
-                <p className="w-30 bg-bg5/30 rounded-lg py-2 text-secondary md:w-40 md:px-3">
+            <div className="bg-bg1 px-6 py-2 lg:py-4 drop-shadow rounded-[50px] gap-3 justify-center mx-auto text-center w-[30%] absolute left-[50%] top-6 lg:top-3 justify-items-center -translate-x-[50%] hidden lg:flex">
+                <p className="text-sm md:text-base w-30 bg-bg5/30 rounded-lg py-1 lg:py-2 text-secondary md:w-40 md:px-3 text-nowrap">
                     {getPlatformDisplayName(platforms.source)}
                 </p>
                 <img
@@ -125,7 +125,7 @@ const Transfer: React.FC = () => {
                     className={`cursor-pointer ${arrowDirectionClass}`}
                     width={25}
                 />
-                <p className="w-30 bg-bg5/30 rounded-lg py-2 text-secondary md:w-40 md:px-3">
+                <p className="text-sm md:text-base w-30 bg-bg5/30 rounded-lg py-1 lg:py-2 text-secondary md:w-40 md:px-3 text-nowrap">
                     {getPlatformDisplayName(platforms.target)}
                 </p>
             </div>
@@ -133,7 +133,7 @@ const Transfer: React.FC = () => {
             <div className={`flex flex-col mb-12 mx-2 md:mx-16 gap-6 2xl:mx-32`}>
                 <section className={`flex flex-col gap-5 bg-bg1 rounded-md justify-between py-5 drop-shadow px-[3%] md:py-8`}>
                     <div className="flex flex-col md:flex-row gap-3 justify-between md:items-center">
-                        <p className="text-secondary text-lg text-pretty font-extrabold px-1 md:px-0 md:text-2xl md:text-nowrap">
+                        <p className="text-secondary text-lg text-pretty font-extrabold px-1 md:px-0 md:text-2xl lg:text-nowrap">
                             {pendingTitle}
                         </p>
                         <div className="flex gap-2 font-bold self-start md:self-auto">
@@ -163,7 +163,7 @@ const Transfer: React.FC = () => {
                     </div>
                 </section>
 
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 pb-6">
+                <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 pb-6">
                     {renderPlatformColumn(platforms.source)}
                     {renderPlatformColumn(platforms.target)}
                 </section>

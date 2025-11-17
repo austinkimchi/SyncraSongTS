@@ -1,11 +1,4 @@
 .playlist-component {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
-  padding: 14px;
-  border-radius: 8px;
   background-color: var(--card-bg);
   box-shadow: 0 2px 4px var(--card-shadow);
   transition: transform 0.2s ease-in-out;
@@ -22,30 +15,12 @@
   transform: translateY(-5px);
 }
 
-.playlist-image {
-  width: 100%;
-  height: auto;
-  border-radius: 6px;
-  margin-bottom: 4px;
-
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -o-user-drag: none;
-  user-select: none;
-  pointer-events: none;
-
-}
-
 .playlist-title {
   font-size: 1.2rem;
   margin: 0;
   color: black;
 }
 
-.playlist-song-count {
-  font-size: 0.9rem;
-  color: #666;
-}
 
 .playlist-status-badge {
   position: absolute;

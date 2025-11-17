@@ -11,8 +11,12 @@
   --color-bg5: #D9D9D9;
   --color-accent: #4a7deb;
 
+  /* change default rounded edge */
   --radius-md: 15px;
   --radius-lg: 100px;
+
+  /* 3xl responsive layout */
+  --breakpoint-3xl: 120rem; /* 1920px */
 }
 
 html,
