@@ -54,7 +54,7 @@ const Link: React.FC = () => {
                                 Paired
                             </p>
                             <button
-                                className={`w-[100%] md:w-[300px] h-9 bg-bg4 text-secondary font-bold ${storedProviders.includes(platform) ? "opacity-50 cursor-default!" : "hover:bg-accent/90"}`}
+                                className={`w-[100%] md:w-[300px] h-9 bg-bg3 text-secondary font-bold ${storedProviders.includes(platform) ? "opacity-50 cursor-default!" : "hover:bg-accent/90"}`}
                                 onClick={() => {
                                     localStorage.removeItem(`providers`);
                                     getPlatformOAuthFunction(platform)()
