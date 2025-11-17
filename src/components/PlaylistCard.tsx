@@ -3,6 +3,7 @@ import { Playlist } from "../types/playlist";
 import PlaceholderNoImage from "../assets/placeholders/300x300-noimage.png";
 import { useDrag, DragSourceMonitor } from "react-dnd";
 import { state } from "../types/status";
+import completeLogo from "../assets/images/synced_button.svg"
 
 import "../css/PlaylistCard.css";
 
@@ -26,8 +27,14 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   }));
 
   const handleClick = () => {
-    if (status === state.QUEUED && onRemove)
+    if (status === state.QUEUED && onRemove) {
       onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
+      return;
+    }
+
+    if (status !== state.QUEUED && onAdd) {
+      onAdd({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
+    }
   };
 
   return (
@@ -40,14 +47,19 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
       {(status === state.PROCESSING || status === state.QUEUED) && (
         <div className="playlist-status-badge playlist-status-badge--processing">
           <span className="playlist-status-spinner" aria-hidden="true" />
-          <span>Transferring…</span>
         </div>
       )}
       {status === state.SUCCESS && (
-        <div className="playlist-status-badge playlist-status-badge--success">Transfer complete</div>
+        <div className="playlist-status-badge">
+          <img
+          src={completeLogo}
+          width="25px"
+          alt="Transfer Complete"
+          />
+        </div>
       )}
       {status === state.ERROR && (
-        <div className="playlist-status-badge playlist-status-badge--error">Transfer failed</div>
+        <div className="playlist-status-badge">Transfer failed</div>
       )}
       <div>
         <img

@@ -49,30 +49,40 @@
 
 .playlist-status-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  right: 1px;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #1f2937;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+
 }
 
 .playlist-status-spinner {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 999px;
-  border: 2px solid rgba(37, 99, 235, 0.4);
-  border-top-color: rgba(37, 99, 235, 1);
+  top: 8px;
+  right: 1px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  padding: 4px;
+  /* thickness of your “border” */
+
+  /* The trick: a gradient background + masking for hollow center */
+  background: conic-gradient(var(--color-bg3), var(--color-bg4));
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent calc(100% - 4px), black calc(100% - 4px));
+  mask:
+    radial-gradient(farthest-side, transparent calc(100% - 4px), black calc(100% - 4px));
+
   animation: playlist-status-spin 1s linear infinite;
 }
+
+@keyframes playlist-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 .playlist-status-badge--processing {
   color: #1d4ed8;
@@ -90,6 +100,7 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }

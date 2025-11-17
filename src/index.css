@@ -42,6 +42,10 @@ body {
   /* TODO Replace neccessary colors with dark theme. */
 }
 
+:root[data-theme="dark"] {
+  background-color: #121212;
+}
+
 a:hover {
   color: var(--color-accent);
 }

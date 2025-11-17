@@ -4,6 +4,7 @@ import Platform, { getPlatformDisplayName, getPlatformLogo } from "../types/plat
 import { ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { waitForProviders } from "../auth/providerStorage";
+import { storeTransferPlatforms } from "../hooks/useTransferPlatforms";
 
 const Connect: React.FC = () => {
     const DEFAULT_LEFT_PLATFORM = Platform.APPLE_MUSIC;
@@ -48,8 +49,13 @@ const Connect: React.FC = () => {
                         Select 2 music platform <br className="md:hidden" />to transfer playlists
                     </p>
                     <button
-                        className={`order-3 md:order-2 max-w-[200px] min-w-[170px] h-[40px] text-nowrap 3 text-secondary justify-center md:justify-self-end scale-95 justify-self-center md:scale-none bg-bg3 ${(storedProviders.length >= 2) ? "hover:bg-accent/90" : (storedProviders.length == 0) ? "" : "opacity-50 cursor-not-allowed"}`}
+                        className={`order-3 md:order-2 max-w-[200px] min-w-[170px] h-[40px] text-nowrap 3 text-secondary justify-center md:justify-self-end scale-95 justify-self-center md:scale-none bg-bg3 font-bold ${(storedProviders.length >= 2) ? "hover:bg-accent/90" : (storedProviders.length == 0) ? "" : "opacity-50 cursor-not-allowed"}`}
                         onClick={() => {
+                            storeTransferPlatforms({
+                                source: leftPlatform,
+                                target: rightPlatform,
+                            });
+
                             if (storedProviders.length < 2)
                                 navigate('/link');
                             else

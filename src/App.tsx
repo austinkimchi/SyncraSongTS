@@ -39,7 +39,7 @@ const AnimatedRoutes: React.FC = () => {
   const isTransferRoute = location.pathname.startsWith("/transfer");
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout" initial={false}>
       {/* Main flow: Connect + About/Link */}
       {!isTransferRoute && (
         <motion.div

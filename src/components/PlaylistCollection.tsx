@@ -13,7 +13,7 @@ const PlaylistCollection: React.FC<PlaylistCollectionProps> = ({
       {playlists?.map((pl) => (
         <PlaylistCard
           key={pl.id}
-          data={{ ...pl, platform: platform! }}
+          data={{ ...pl, platform: platform ?? pl.platform }}
           onAdd={onAdd}
           onRemove={onRemove}
         />
