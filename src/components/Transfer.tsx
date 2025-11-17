@@ -23,7 +23,7 @@ const Transfer: React.FC = () => {
                     <p className="text-secondary text-lg text-pretty  font-extrabold px-4 md:px-0 md:text-2xl md:text-nowrap">
                         Select or Drag playlists up here to transfer...
                     </p>
-                    <div className='flex gap-2'>
+                    <div className='flex gap-2 font-bold'>
                         <button
                             className={`max-w-[200px] min-w-[170px] h-[40px] text-nowrap bg-bg3 text-secondary justify-center md:justify-self-end scale-95 justify-self-center md:scale-none`}
                             onClick={() => {
@@ -34,7 +34,7 @@ const Transfer: React.FC = () => {
                             Commit Transfer
                         </button>
                         <button
-                            className={`max-w-[200px] min-w-[170px] h-[40px] text-nowrap bg-bg5! text-secondary justify-center md:justify-self-end scale-95 justify-self-center md:scale-none`}
+                            className={`max-w-[200px] min-w-[170px] h-[40px] text-nowrap bg-bg5 text-bg1 justify-center md:justify-self-end scale-95 justify-self-center md:scale-none`}
                             onClick={() => {
                                 // cancel action here
                             }}
