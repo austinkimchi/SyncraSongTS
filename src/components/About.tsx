@@ -4,7 +4,7 @@ const About: React.FC = () => {
     return (
         <>
             {/* Second section; Description */}
-            < section className={`mb-16 bg-bg2 rounded-md mx-2 md:mx-16 2xl:px-50`}>
+            < section className={`mb-16 bg-bg2 rounded-md mx-2 md:mx-16 2xl:mx-32`}>
                 <h2 className="text-bg3 font-extrabold px-8 text-left text-lg/[30px] text-pretty tracking-wide py-10 md:py-20 text-pretty md:text-3xl/[50px] md:text-center">SyncraSong is the ultimate tool to transfer music playlists <br className="hidden md:inline" />across multiple top music platforms, providing seamless <br className="hidden md:inline" />synchronization up-to-date with your latest song additions.</h2>
             </section >
 

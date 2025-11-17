@@ -97,7 +97,7 @@ const Transfer: React.FC = () => {
                     </p>
                 </div>
                 <button
-                    className="text-secondary bg-bg3 font-bold w-[180px] h-[35px]"
+                    className="text-secondary bg-bg3 font-bold w-[180px] h-[40px]"
                     onClick={() => selectAllFromPlatform(platform)}
                 >
                     Select All
@@ -130,7 +130,7 @@ const Transfer: React.FC = () => {
                 </p>
             </div>
 
-            <div className={`flex flex-col mb-12 mx-2 md:mx-16 gap-6`}>
+            <div className={`flex flex-col mb-12 mx-2 md:mx-16 gap-6 2xl:mx-32`}>
                 <section className={`flex flex-col gap-5 bg-bg1 rounded-md justify-between py-5 drop-shadow px-[3%] md:py-8`}>
                     <div className="flex flex-col md:flex-row gap-3 justify-between md:items-center">
                         <p className="text-secondary text-lg text-pretty font-extrabold px-1 md:px-0 md:text-2xl md:text-nowrap">

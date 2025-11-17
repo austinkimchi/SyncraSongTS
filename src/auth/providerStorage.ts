@@ -72,11 +72,14 @@ interface InfoPayload {
 }
 
 export const waitForProviders = async (): Promise<Platform[]> => {
+  if (!localStorage.getItem("token"))
+    return [];
+
   const response = await fetch(`${API_FULL_URL}${API_PATH}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${localStorage.getItem("token") || ""}`,
+      "Authorization": `Bearer ${localStorage.getItem("token")}`,
     },
   });
 
@@ -99,28 +102,3 @@ export const waitForProviders = async (): Promise<Platform[]> => {
 
   return providers;
 };
-
-// export const waitForProviders = async (timeoutMs = 1000): Promise<Platform[]> => {
-//   const current = getStoredProviders();
-//   if (current.length > 0) {
-//     return current;
-//   }
-
-//   return new Promise((resolve) => {
-//     let finished = false;
-//     const finish = () => {
-//       console.log("items",localStorage.getItem(PROVIDERS_STORAGE_KEY));
-//       if (finished) return;
-//       finished = true;
-//       window.removeEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener);
-//       resolve(getStoredProviders());
-//     };
-
-//     const onUpdate = () => {
-//       finish();
-//     };
-
-//     window.addEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener, { once: true });
-//     window.setTimeout(finish, timeoutMs);
-//   });
-// };

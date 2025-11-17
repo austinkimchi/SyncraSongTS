@@ -34,7 +34,7 @@ const Link: React.FC = () => {
     }, [storedProviders]);
 
     return (
-        <div className={`flex flex-col gap-2 mx-2 md:mx-16`}>
+        <div className={`flex flex-col gap-2 mx-2 md:mx-16 2xl:mx-32`}>
             {platforms
                 .map((platform) => (
                     <div key={platform} className="flex flex-col gap-2 md:flex-row bg-bg2 rounded-md py-8 justify-between px-12">

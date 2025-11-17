@@ -20,28 +20,41 @@ const Connect: React.FC = () => {
     }
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const isOnLinkPage = location.pathname.includes("link");
 
     const [storedProviders, setStoredProviders] = React.useState<Platform[]>([]);
+
     React.useEffect(() => {
         (async () => {
             const providers = await waitForProviders();
 
-            if (providers.length !== storedProviders.length)
-                setStoredProviders(providers);
-            if (providers.length > 0) {
-                if (!providers.includes(leftPlatform)) {
-                    setLeftPlatform(providers[0]);
-                }
-                if (!providers.includes(rightPlatform)) {
-                    setRightPlatform(providers.length > 1 ? providers[1] : providers[0]);
-                }
+            setStoredProviders(prev => {
+                const sameLength = prev.length === providers.length;
+                const sameItems =
+                    sameLength && prev.every((p, i) => p === providers[i]);
+                return sameItems ? prev : providers;
+            });
 
+            if (providers.length > 0) {
+                setLeftPlatform(current =>
+                    providers.includes(current) ? current : providers[0]
+                );
+                setRightPlatform(current =>
+                    providers.includes(current)
+                        ? current
+                        : providers.length > 1
+                            ? providers[1]
+                            : providers[0]
+                );
             }
         })();
-    }, [storedProviders]);
+    }, [location.key]);
+
+    const isDisabled = isOnLinkPage && storedProviders.length < 2;
 
     return (
-        <div className={`flex flex-col mb-8 mx-2 md:mx-16`}>
+        <div className={`flex flex-col mb-8 mx-2 md:mx-16 2xl:mx-32`}>
             {/* First section; Ask user for transfer playlist selection */}
             <section className={`flex flex-col gap-5 bg-bg1 rounded-md justify-between py-5 drop-shadow`}>
                 <div className="grid gap-10 grid-cols-1 justify-between px-[3%] md:grid-cols-2 md:py-5">
@@ -49,7 +62,10 @@ const Connect: React.FC = () => {
                         Select 2 music platform <br className="md:hidden" />to transfer playlists
                     </p>
                     <button
-                        className={`order-3 md:order-2 max-w-[200px] min-w-[170px] h-[40px] text-nowrap 3 text-secondary justify-center md:justify-self-end scale-95 justify-self-center md:scale-none bg-bg3 font-bold ${(storedProviders.length >= 2) ? "hover:bg-accent/90" : (storedProviders.length == 0) ? "" : "opacity-50 cursor-not-allowed"}`}
+                        className={`order-3 md:order-2 max-w-[200px] min-w-[170px] h-[40px] text-nowrap text-secondary justify-center md:justify-self-end scale-95 justify-self-center md:scale-none bg-bg3 font-bold ${!isDisabled
+                            ? "hover:bg-accent/90"
+                            : "opacity-50 cursor-not-allowed"
+                            }`}
                         onClick={() => {
                             storeTransferPlatforms({
                                 source: leftPlatform,
@@ -59,9 +75,9 @@ const Connect: React.FC = () => {
                             if (storedProviders.length < 2)
                                 navigate('/link');
                             else
-                                navigate('/transfer')
+                                navigate('/transfer');
                         }}
-                        disabled={storedProviders.length != 0 && storedProviders.length < 2}
+                        disabled={isDisabled}
                     >
                         {storedProviders.length < 2 ? "Confirm Selection" : "Continue"}
                     </button>
@@ -122,7 +138,6 @@ const Connect: React.FC = () => {
         const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
         const handleClose = () => setAnchorEl(null);
         const platforms = React.useMemo(() => Object.values(Platform), []);
-        console.log("Stored Providers in Connect:", storedProviders);
 
         if (storedProviders.length > 0)
             platforms.splice(0, platforms.length, ...storedProviders);

@@ -6,7 +6,7 @@ const Nav: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <nav className={`navbar flex justify-between my-6 mx-2 md:mx-16`}>
+        <nav className={`navbar flex justify-between my-6 mx-2 md:mx-16 2xl:mx-32`}>
             <h1
                 className="m-0! text-primary font-extrabold text-3xl! self-center cursor-pointer select-none"
                 onClick={() => navigate('/')}
