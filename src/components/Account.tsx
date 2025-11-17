@@ -11,6 +11,7 @@ import {
   Divider
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AccountCirclePlaceholder from "../assets/placeholders/placeholder1.svg";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
@@ -142,13 +143,14 @@ const Account: React.FC<AccountProps> = ({ }) => {
 
       const { oauth, userId, jwt } = payload
 
-      const providers: Platform[] = [];
-      for (const entry of oauth) {
-        const plat = mapProviderToPlatform(entry.provider);
-        if (plat) providers.push(plat);
-      }
-      
-      setStoredProviders(providers);
+      // const providers: Platform[] = [];
+      // for (const entry of oauth) {
+      //   const plat = mapProviderToPlatform(entry.provider);
+      //   if (plat) providers.push(plat);
+      // }
+
+      // setStoredProviders(providers);
+      const providers = [] as any;
 
       const accountInfo: AccountInfo = {
         userID: userId,
@@ -249,19 +251,20 @@ const Account: React.FC<AccountProps> = ({ }) => {
   // Menu content when logged in: settings / theme / logout
   const AuthedMenu = (
     <>
-      <MenuItem disabled>
-        <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
+      <MenuItem >
+        <ListItemIcon>
+          <img
+            src={AccountCirclePlaceholder}
+            alt="Account"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        </ListItemIcon>
         <ListItemText
           primary={account?.displayName || account?.userID || "Account"}
           secondary={(account?.providers || []).map((provider) => getPlatformDisplayName(provider)).join(", ")}
         />
       </MenuItem>
       <Divider />
-
-      <MenuItem onClick={handleMenuClose}>
-        <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
-        <ListItemText primary="Settings" />
-      </MenuItem>
 
       <MenuItem onClick={toggleTheme}>
         <ListItemIcon><BrightnessMediumIcon fontSize="small" /> </ListItemIcon>
@@ -290,10 +293,18 @@ const Account: React.FC<AccountProps> = ({ }) => {
 
   return (
     <ThemeProvider theme={buttonTheme}>
-      <IconButton onClick={handleMenuOpen} color="inherit" aria-label="account">
-        <div data-testid="account-avatar">
-          <AccountCircleIcon />
-        </div>
+      <IconButton onClick={handleMenuOpen}
+        aria-label="account"
+        sx={{
+          outline: "none",
+          '&:focus': { outline: "none" }
+        }}
+      >
+        <img
+          src={AccountCirclePlaceholder}
+          alt="Account"
+          className="w-8 h-8 rounded-full object-cover"
+        />
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
         {account ? AuthedMenu : UnauthedMenu}

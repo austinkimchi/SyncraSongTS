@@ -3,6 +3,7 @@ import Platform from "../types/platform";
 import { OAuthCallbackResponse, PlatformAuthService } from "./PlatformAuthService";
 import { storePendingAccount, clearPendingAccount } from "./pendingAccount";
 import { addStoredProvider, waitForProviders } from "../auth/providerStorage";
+import { navigateTo } from "./createNavigate";
 
 const PROFILE_STORAGE_KEY = "soundcloud-profile";
 const STATE_STORAGE_KEY = "soundcloud-oauth-state";
@@ -31,7 +32,7 @@ class SoundCloudAuthService implements PlatformAuthService {
         sessionStorage.removeItem(STATE_STORAGE_KEY);
         if (storedState && storedState !== state) {
             console.error("SoundCloud OAuth state mismatch");
-            window.history.replaceState({}, document.title, "/");
+            navigateTo('/link');
             return;
         }
 
@@ -56,7 +57,7 @@ class SoundCloudAuthService implements PlatformAuthService {
             data = await callbackResponse.json();
         } catch (error) {
             console.error("Failed to parse SoundCloud callback response", error);
-            window.history.replaceState({}, document.title, "/");
+            navigateTo('/link');
             return;
         }
 
@@ -70,7 +71,7 @@ class SoundCloudAuthService implements PlatformAuthService {
             clearPendingAccount();
             window.dispatchEvent(new Event("auth-changed"));
         }
-        window.history.replaceState({}, document.title, "/");
+        navigateTo('/link');
     }
 
     async isLoggedIn(): Promise<boolean> {
@@ -139,5 +140,5 @@ class SoundCloudAuthService implements PlatformAuthService {
 export const soundCloudAuthService = new SoundCloudAuthService();
 
 export const redirectToSoundCloudOAuth = () => soundCloudAuthService.redirectToOAuth();
-export const handleSoundCloudCallback = () => soundCloudAuthService.handleCallback();
+export const handleSoundCloudCallback = async () => soundCloudAuthService.handleCallback();
 export const isSoundCloudLoggedIn = () => soundCloudAuthService.isLoggedIn();

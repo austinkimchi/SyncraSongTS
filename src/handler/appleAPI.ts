@@ -2,7 +2,8 @@ import { emitAuthChanged } from "../auth/emitAuthChanged";
 import { API_FULL_URL, APP_FULL_URL } from "../config";
 import Platform from "../types/platform";
 import type { PlatformAuthService } from "./PlatformAuthService";
-import { addStoredProvider, waitForProviders } from "../auth/providerStorage";
+import { waitForProviders } from "../auth/providerStorage";
+import { navigateTo } from "./createNavigate";
 
 declare const MusicKit: any;
 
@@ -85,7 +86,7 @@ class AppleMusicAuthService implements PlatformAuthService {
       }),
     });
 
-    window.history.replaceState({}, document.title, "/");
+    navigateTo('link');
     emitAuthChanged(Platform.APPLE_MUSIC);
   }
 
@@ -103,7 +104,7 @@ class AppleMusicAuthService implements PlatformAuthService {
 export const appleMusicAuthService = new AppleMusicAuthService();
 
 export const redirectToAppleOAuth = () => appleMusicAuthService.redirectToOAuth();
-export const handleAppleCallback = () => appleMusicAuthService.handleCallback();
+export const handleAppleCallback = async () => appleMusicAuthService.handleCallback();
 export const isAppleMusicLoggedIn = () => appleMusicAuthService.isLoggedIn();
 
 function base64Encode(str: string): string {

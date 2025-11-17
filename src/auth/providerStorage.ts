@@ -1,7 +1,10 @@
+import { API_FULL_URL } from "../config";
 import { Platform } from "../types/enums/platform.enum";
 
 const PROVIDERS_STORAGE_KEY = "providers";
 const PROVIDERS_UPDATED_EVENT = "providers-updated";
+
+const API_PATH = "/auth/info";
 
 type ProviderEventDetail = {
   providers: Platform[];
@@ -62,26 +65,62 @@ export const clearStoredProviders = () => {
 
 export const providersUpdatedEventName = PROVIDERS_UPDATED_EVENT;
 
-export const waitForProviders = async (timeoutMs = 1000): Promise<Platform[]> => {
-  const current = getStoredProviders();
-  if (current.length > 0) {
-    return current;
+interface InfoPayload {
+  jwt: { expiresAt: EpochTimeStamp; expiresIn: number };
+  userId: string;
+  oauth: Array<{ provider: Platform; providerId: string }>;
+}
+
+export const waitForProviders = async (): Promise<Platform[]> => {
+  const response = await fetch(`${API_FULL_URL}${API_PATH}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("token") || ""}`,
+    },
+  });
+
+  if (!response.ok) {
+    console.error("Failed to fetch providers from API");
+    return [];
   }
 
-  return new Promise((resolve) => {
-    let finished = false;
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      window.removeEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener);
-      resolve(getStoredProviders());
-    };
+  const data = await response.json() as InfoPayload;
+  const { oauth } = data;
+  const providers: Platform[] = [];
 
-    const onUpdate = () => {
-      finish();
-    };
+  for (const entry of oauth) {
+    const plat = entry.provider;
+    if (validProviders.has(plat)) {
+      providers.push(plat);
+    }
+  }
+  setStoredProviders(providers);
 
-    window.addEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener, { once: true });
-    window.setTimeout(finish, timeoutMs);
-  });
+  return providers;
 };
+
+// export const waitForProviders = async (timeoutMs = 1000): Promise<Platform[]> => {
+//   const current = getStoredProviders();
+//   if (current.length > 0) {
+//     return current;
+//   }
+
+//   return new Promise((resolve) => {
+//     let finished = false;
+//     const finish = () => {
+//       console.log("items",localStorage.getItem(PROVIDERS_STORAGE_KEY));
+//       if (finished) return;
+//       finished = true;
+//       window.removeEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener);
+//       resolve(getStoredProviders());
+//     };
+
+//     const onUpdate = () => {
+//       finish();
+//     };
+
+//     window.addEventListener(PROVIDERS_UPDATED_EVENT, onUpdate as EventListener, { once: true });
+//     window.setTimeout(finish, timeoutMs);
+//   });
+// };

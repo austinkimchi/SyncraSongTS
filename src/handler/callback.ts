@@ -9,6 +9,6 @@ if (pathname.startsWith("/callback/")) {
     const platform = platformStr as Platform;
     const callbackFunction = getPlatformCallbackFunction(platform);
     if (callbackFunction) {
-        callbackFunction();
+        callbackFunction()
     }
 }

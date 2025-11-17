@@ -3,6 +3,7 @@ import Platform from "../types/platform";
 import type { OAuthCallbackResponse, PlatformAuthService } from "./PlatformAuthService";
 import { storePendingAccount, clearPendingAccount } from "./pendingAccount";
 import { addStoredProvider, waitForProviders } from "../auth/providerStorage";
+import { navigateTo } from "./createNavigate";
 
 interface OAuthLinkResponse {
   state: string;
@@ -43,7 +44,7 @@ class SpotifyAuthService implements PlatformAuthService {
     sessionStorage.removeItem(STATE_STORAGE_KEY);
     if (storedState && storedState !== state) {
       console.error("Spotify OAuth state mismatch");
-      window.history.replaceState({}, document.title, "/");
+      navigateTo('/link');
       return;
     }
 
@@ -51,42 +52,40 @@ class SpotifyAuthService implements PlatformAuthService {
     callbackUrl.searchParams.set("code", code);
     callbackUrl.searchParams.set("state", state);
 
-    let callbackResponse: Response;
     try {
-      callbackResponse = await fetch(callbackUrl.toString(), { method: "GET" });
+      const callbackResponse = await fetch(callbackUrl.toString(), { method: "GET" });
+
+      if (!callbackResponse.ok) {
+        console.error("Spotify callback failed", callbackResponse.status);
+        navigateTo('/link');
+        return;
+      }
+
+      try {
+        const data = await callbackResponse.json();
+        if (data.jwt) {
+          localStorage.setItem("token", data.jwt);
+        }
+
+        if (data.info === "complete-signup" && data.state) {
+          storePendingAccount({ provider: Platform.SPOTIFY, state: data.state });
+        } else if (data.info === "signin" || data.info === "connected") {
+          clearPendingAccount();
+          window.dispatchEvent(new Event("auth-changed"));
+        }
+        
+        console.log(`[SpotifyAuthService] OAuth ${data.info} successful`);
+        navigateTo('/link');
+      } catch (error) {
+        console.error("Failed to parse Spotify callback response", error);
+        navigateTo('/link');
+        return;
+      }
     } catch (error) {
       console.error("Failed to reach Spotify callback endpoint", error);
-      window.history.replaceState({}, document.title, "/");
+      navigateTo('/link');
       return;
     }
-
-    if (!callbackResponse.ok) {
-      console.error("Spotify callback failed", callbackResponse.status);
-      window.history.replaceState({}, document.title, "/");
-      return;
-    }
-
-    let data: OAuthCallbackResponse = {};
-    try {
-      data = await callbackResponse.json();
-    } catch (error) {
-      console.error("Failed to parse Spotify callback response", error);
-      window.history.replaceState({}, document.title, "/");
-      return;
-    }
-
-    if (data.jwt) {
-      localStorage.setItem("token", data.jwt);
-    }
-
-    if (data.info === "complete-signup" && data.state) {
-      storePendingAccount({ provider: Platform.SPOTIFY, state: data.state });
-    } else if (data.info === "signin" || data.info === "connected") {
-      clearPendingAccount();
-      window.dispatchEvent(new Event("auth-changed"));
-    }
-
-    window.history.replaceState({}, document.title, "/");
   }
 
   async isLoggedIn(): Promise<boolean> {
@@ -126,8 +125,8 @@ class SpotifyAuthService implements PlatformAuthService {
         method: "POST",
         url: `${API_FULL_URL}/api/oauth/link`,
         body: JSON.stringify({
-          provider: payload.provider, 
-          intent: payload.intent, 
+          provider: payload.provider,
+          intent: payload.intent,
           redirectUri: `${window.location.origin}/callback/spotify`,
           token: token
         }),
@@ -159,5 +158,5 @@ class SpotifyAuthService implements PlatformAuthService {
 export const spotifyAuthService = new SpotifyAuthService();
 
 export const redirectToSpotifyOAuth = () => spotifyAuthService.redirectToOAuth();
-export const handleSpotifyCallback = () => spotifyAuthService.handleCallback();
+export const handleSpotifyCallback = async () => spotifyAuthService.handleCallback();
 export const isSpotifyLoggedIn = () => spotifyAuthService.getStoredProfile();

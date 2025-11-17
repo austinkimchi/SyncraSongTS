@@ -1,10 +1,8 @@
 import React from "react";
 import App from "./App";
 import { createRoot } from "react-dom/client";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 
-// Asset Imports
+// CSS
 import "./index.css";
 
 const rootElement = document.getElementById("root");
@@ -17,8 +15,6 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <DndProvider backend={HTML5Backend}>
-      <App />
-    </DndProvider>
+    <App />
   </React.StrictMode>
 );
