@@ -7,6 +7,7 @@ import refreshIcon from "../assets/icons/refresh.svg";
 import { waitForProviders } from "../auth/providerStorage";
 import PlaylistCollection from "./PlaylistCollection";
 import { commitPendingPlaylists } from "../handler/playlistTransfer";
+import { getTransferStatus } from "../handler/transferStatus";
 import { usePlatformClient } from "../hooks/usePlatformClient";
 import { loadTransferPlatforms, storeTransferPlatforms, TransferPlatforms } from "../hooks/useTransferPlatforms";
 import Platform, { getPlatformDisplayName, getPlatformLogo } from "../types/platform";
@@ -110,6 +111,14 @@ const Transfer: React.FC = () => {
         }
     }, [fetchPlaylists, platforms.source, platforms.target, sourceClient, targetClient]);
 
+    const isMountedRef = React.useRef(true);
+
+    React.useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     // Allow adding from either platform now
     const addPendingPlaylist = React.useCallback((playlist: Playlist) => {
         // set arrow direction based on source and target
@@ -140,6 +149,90 @@ const Transfer: React.FC = () => {
         });
     };
 
+    const pollTransferStatuses = React.useCallback(
+        async (
+            transferIds: string[] | undefined,
+            transferPlaylists: Playlist[],
+            targetPlatform: Platform,
+            failedPlaylistIds: string[] | undefined
+        ) => {
+            if (!transferIds?.length) return;
+
+            const POLL_INTERVAL_MS = 2000;
+
+            const resolvePlaylist = (index: number): Playlist | undefined =>
+                transferPlaylists[index];
+
+            const updateSuccess = (playlist: Playlist) => {
+                setPendingPlaylists((current) =>
+                    current.filter((pl) => pl.id !== playlist.id)
+                );
+
+                setLibraryPlaylists((current) => {
+                    const targetList = current[targetPlatform] ?? [];
+                    const withoutPlaylist = targetList.filter(
+                        (pl) => pl.id !== playlist.id
+                    );
+                    const updated = [
+                        {
+                            ...playlist,
+                            platform: targetPlatform,
+                            status: state.SUCCESS,
+                        },
+                        ...withoutPlaylist,
+                    ];
+
+                    return { ...current, [targetPlatform]: updated };
+                });
+            };
+
+            const updateFailure = (playlist: Playlist) => {
+                setPendingPlaylists((current) =>
+                    current.map((pl) =>
+                        pl.id === playlist.id
+                            ? { ...pl, status: state.ERROR }
+                            : pl
+                    )
+                );
+            };
+
+            await Promise.all(
+                transferIds.map(async (transferId, index) => {
+                    const playlist = resolvePlaylist(index);
+
+                    if (!playlist) return;
+                    if (failedPlaylistIds?.includes(playlist.id)) return;
+
+                    while (true) {
+                        try {
+                            const statusResponse = await getTransferStatus(transferId);
+
+                            if (statusResponse.status === state.SUCCESS) {
+                                updateSuccess(playlist);
+                                return;
+                            }
+
+                            if (statusResponse.status === state.ERROR) {
+                                updateFailure(playlist);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error(
+                                `Failed to poll transfer status for ${transferId}`,
+                                error
+                            );
+                        }
+
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, POLL_INTERVAL_MS)
+                        );
+                    }
+                })
+            );
+        },
+        []
+    );
+
     const onCommit = React.useCallback(async () => {
         if (pendingPlaylists.length === 0) return;
 
@@ -153,10 +246,13 @@ const Transfer: React.FC = () => {
         );
 
         try {
-            const target_platform = pendingPlaylists[0].platform === platforms.source ? platforms.target : platforms.source;
+            const targetPlatform =
+                pendingPlaylists[0].platform === platforms.source
+                    ? platforms.target
+                    : platforms.source;
             const response = await commitPendingPlaylists(
                 toCommit,
-                target_platform
+                targetPlatform
             );
 
             if (response?.failed_ids?.length) {
@@ -168,6 +264,13 @@ const Transfer: React.FC = () => {
                     )
                 );
             }
+
+            await pollTransferStatuses(
+                response?.ids,
+                toCommit,
+                targetPlatform,
+                response?.failed_ids
+            );
         } catch (error) {
             console.error("Failed to commit pending playlists", error);
             setPendingPlaylists((current) =>
@@ -179,7 +282,7 @@ const Transfer: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    }, [pendingPlaylists, platforms.target]);
+    }, [pendingPlaylists, platforms.source, platforms.target, pollTransferStatuses]);
 
     const onCancelAll = () => {
         setIsSubmitting(false);
