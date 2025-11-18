@@ -142,15 +142,7 @@ const Account: React.FC<AccountProps> = ({ }) => {
         return;
       }
 
-      const { oauth, userId, jwt } = payload
-
-      // const providers: Platform[] = [];
-      // for (const entry of oauth) {
-      //   const plat = mapProviderToPlatform(entry.provider);
-      //   if (plat) providers.push(plat);
-      // }
-
-      // setStoredProviders(providers);
+      const { oauth, userId, jwt } = payload;
       const providers = [] as any;
 
       const accountInfo: AccountInfo = {
