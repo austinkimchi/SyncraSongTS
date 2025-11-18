@@ -25,7 +25,7 @@ Hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
 ---
 
-## 📖 Overview
+## Overview
 **SyncraSongTS** is a front-end web application built using the **MERN stack** — MongoDB, Express.js, React, and Node.js.  
 It connects to the companion back-end service, [SyncraSongTSAPI](https://github.com/austinkimchi/SyncraSongTSAPI) (**private repository**) for playlist transfer and synchronization features.  
 
@@ -34,13 +34,13 @@ It connects to the companion back-end service, [SyncraSongTSAPI](https://github.
 > Spotify accounts can be either free or premium. 
 ---
 
-## 🚧 In Progress
+## In Progress
 - [ ] SoundCloud Matching Algorithm Improvements
 - [ ] Song Caching
 
 ---
 
-## 📝 TODO  
+## TODO  
 - [ ] List view for playlists (in addition to grid view)
 - [ ] Spotify: Fetch full user library (Blends, Liked Songs, etc.)  
 - [ ] User settings panel (e.g., default platform, theme preference)
@@ -49,7 +49,7 @@ It connects to the companion back-end service, [SyncraSongTSAPI](https://github.
 
 ---
 
-## ✅ Completed  
+## Completed  
 - [x] Automatic playlist fetching for authenticated users  
 - [x] RESTful API integration with back-end  
 - [x] Drag-and-drop UI interaction  
@@ -62,14 +62,9 @@ It connects to the companion back-end service, [SyncraSongTSAPI](https://github.
 
 ---
 
-## 📸 Current State (as of 10/17/2025)  
-![Current State](./src/assets/images/101725_syncrasong.png)  
-
-> [!TIP]  
-> Users can **drag** playlists between platforms.  
-> The yellow box represents the **staging area** before confirming a transfer.  
-
-![Pending State](./src/assets/images/SyncraSong_pending.png)  
+## Current State (as of 11//17/2025)  
+![Current State](./src/assets/images/SyncraSong_v3_Home.png) 
+![Current State](./src/assets/images/SyncraSong_v3_transfer2.png) 
 
 > [!NOTE]  
 > **Performance Estimates:**  
