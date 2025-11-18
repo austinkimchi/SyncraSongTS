@@ -57,8 +57,8 @@ const Transfer: React.FC = () => {
     const [pendingPlaylists, setPendingPlaylists] = React.useState<Playlist[]>([]);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-    React.useEffect(()=>{
-         if (pendingPlaylists.length <= 0) { setArrowDirectionClass(""); }
+    React.useEffect(() => {
+        if (pendingPlaylists.length <= 0) { setArrowDirectionClass(""); }
     }, [pendingPlaylists]); // reset arrow direction when no pending playlists
 
     React.useEffect(() => {
@@ -327,7 +327,13 @@ const Transfer: React.FC = () => {
         const playlists = libraryPlaylists[platform] ?? [];
         const isLoading = loadingPlatforms[platform];
         const isConnected = storedProviders.includes(platform);
-        const multiplier = pendingPlaylists.length > 0 ? 2 : 1;
+        const multiplier = (pendingPlaylists.length > 0) ? 2 : 1;
+        const gridColsWhenIdle =
+            "grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5";
+        const gridColsWhenDense =
+            "grid-cols-2 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8 3xl:grid-cols-10";
+        const gridColsClass =
+            multiplier === 2 ? gridColsWhenDense : gridColsWhenIdle;
 
         return (
             <div
@@ -343,7 +349,7 @@ const Transfer: React.FC = () => {
                                 className="w-10 rounded-full"
                             />
                         </div>
-                        <p className="text-lg md:text-2xl font-bold text-thirdary font-extrabold">
+                        <p className="text-sm lg:text-2xl font-bold text-thirdary font-extrabold text-nowrap">
                             {getPlatformDisplayName(platform)}
                         </p>
                         <img src={refreshIcon} alt="refresh" className="w-6 h-6 cursor-pointer" onClick={() => fetchPlaylists(platform, platform === platforms.source ? sourceClient : targetClient, true)} />
@@ -372,12 +378,12 @@ const Transfer: React.FC = () => {
                 {isLoading ? (
                     <p className="text-black">Loading playlists…</p>
                 ) : (
-                    <div className={`grid display-grid grid-cols-${2 * multiplier} md:grid-cols-${2 * multiplier} lg:grid-cols-${3 * multiplier} 2xl:grid-cols-${4 * multiplier} 3xl:grid-cols-${5 * multiplier} gap-4`}>
+                    <div className={`grid ${gridColsClass} gap-4`}>
                         <PlaylistCollection
                             playlists={playlists}
                             platform={platform}
                             onAdd={addPendingPlaylist}
-                            isPending={(pl)=> pendingPlaylists.some(p => p.id === pl.id)}
+                            isPending={(pl) => pendingPlaylists.some(p => p.id === pl.id)}
                         />
                     </div>
                 )}
