@@ -62,6 +62,13 @@ a:hover {
     border-radius: 100px;
     cursor: pointer;
   }
+  .drag-none{
+    user-select: none;
+    -webkit-user-drag: none;
+    -moz-user-drag: none;
+    -ms-user-drag: none;
+    user-drag: none;
+  }
 }
 
 button:hover {

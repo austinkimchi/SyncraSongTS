@@ -20,4 +20,5 @@ export interface PlaylistCollectionProps {
   status?: PlaylistStatus;
   onAdd?: (playlist: Playlist) => void;
   onRemove?: (playlist: Playlist) => void;
+  isPending?: (playlist: Playlist) => boolean;
 }

@@ -120,7 +120,7 @@ const Transfer: React.FC = () => {
         setPendingPlaylists((current) => {
             if (current.some((pl) => pl.id === playlist.id)) return current;
 
-            const queuedPlaylist = { ...playlist, status: state.QUEUED };
+            const queuedPlaylist = { ...playlist, status: state.PENDING };
             return [...current, queuedPlaylist];
         });
     }, []);
@@ -273,6 +273,8 @@ const Transfer: React.FC = () => {
                         <PlaylistCollection
                             playlists={playlists}
                             platform={platform}
+                            onAdd={addPendingPlaylist}
+                            isPending={(pl)=> pendingPlaylists.some(p => p.id === pl.id)}
                         />
                     </div>
                 )}

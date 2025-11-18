@@ -16,10 +16,11 @@ interface PlaylistComponentProps {
 
 const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   data: { id, name, image, trackCount, platform, status, description, isPublic, href },
+  onAdd,
   onRemove,
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: status === state.QUEUED ? "DRAG_FROM_PENDING" : "DRAG_FROM_PROVIDER",
+    type: status === state.PENDING ? "DRAG_FROM_PENDING" : "DRAG_FROM_PROVIDER",
     item: { id, name, image, trackCount, status, platform, description },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
@@ -27,7 +28,10 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   }));
 
   const handleClick = () => {
-    if (status === state.QUEUED && onRemove) {
+    if (status !== state.PENDING && onAdd) {
+      onAdd({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
+    }
+    if (status === state.PENDING && onRemove) {
       onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
     }
   };
@@ -43,11 +47,11 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   return (
     <div
       ref={drag}
-      className={`playlist-component flex flex-row lg:flex-col align-center text-center p-[8px] lg:p-[14px] rounded-md cursor-grab ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
+      className={`playlist-component flex flex-row lg:flex-col align-center text-center p-[8px] lg:p-[14px] rounded-md cursor-grab select-none ${platform}-gradient ${isDragging ? "opacity-50" : "opacity-100"}`}
       onClick={handleClick} // On click will opened detailed view, future feature
       data-testid={`playlist-card-${id}`}
     >
-      {status === state.QUEUED && (
+      {status === state.PENDING && (
         <button
           type="button"
           className="playlist-status-badge playlist-status-badge--remove"
@@ -79,7 +83,7 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
       <img
         src={image || PlaceholderNoImage}
         alt={name}
-        className="w-12 h-12 lg:w-[100%] lg:h-auto rounded-md mb-[4px] aspect-square object-cover select-none"
+        className="w-12 h-12 lg:w-[100%] lg:h-auto rounded-md mb-[4px] aspect-square object-cover select-none drag-none"
       />
 
       <div className="self-center pl-1 text-left lg:text-center">

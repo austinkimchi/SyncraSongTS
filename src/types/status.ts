@@ -3,5 +3,6 @@ export enum state {
     PROCESSING = "processing",
     SUCCESS = "success",
     ERROR = "error",
-    NONE = "none"
+    NONE = "none",
+    PENDING = "pending",
 }
