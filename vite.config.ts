@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 8080,
-    allowedHosts: ["ssv2.austin.kim"]
+    allowedHosts: ["ssv2.austin.kim", "syncrasong.austin.kim"]
   },
   optimizeDeps: {
     exclude: ["node_modules/.cache"],

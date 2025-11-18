@@ -1,11 +1,14 @@
 import { defineConfig } from "vitest/config";
 import { playwright } from '@vitest/browser-playwright';
 import react from "@vitejs/plugin-react-swc";
-import tailwindcss from "@tailwindcss/vite";
+// import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    // tailwindcss()
+  ],
   test: {
     globals: true,
     environment: "jsdom",
@@ -19,7 +22,7 @@ export default defineConfig({
   },
   server: {
     port: 80,
-    allowedHosts: ["ssv2.austin.kim"]
+    allowedHosts: ["ssv2.austin.kim", "syncrasong.austin.kim"]
   },
   optimizeDeps: {
     exclude: ["node_modules/.cache"],
