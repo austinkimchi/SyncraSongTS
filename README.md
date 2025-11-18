@@ -17,20 +17,20 @@
 </div>
 
 
-### 🪧 Notice  
-This is a **public repository** currently under active development.  
-**Not intended for redistribution or derivative use.**
+### Notice  
+Currently hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/) <br />
+This README reflects the latest version (v3) documentation of SyncraSongTS. <br />
 
-Hosted at: [https://syncrasong.austin.kim/](https://syncrasong.austin.kim/)
 
 ---
 
 ## Overview
 **SyncraSongTS** is a front-end web application built using the **MERN stack** — MongoDB, Express.js, React, and Node.js.  
-It connects to the companion back-end service, [SyncraSongTSAPI](https://github.com/austinkimchi/SyncraSongTSAPI) (**private repository**) for playlist transfer and synchronization features.  
+It connects to the companion back-end service, [SyncraSongTSAPI](https://github.com/austinkimchi/SyncraSongTSAPI) for playlist transfer and synchronization features.  
 
 > [!IMPORTANT]
-> **You must be an active Apple Music subscriber** to link your Apple Music account with this app.  
+> **You must be an active Apple Music subscriber** to link your Apple Music account with this app.
+> This is an Apple restriction, not a limitation of SyncraSongTS.  
 > Spotify accounts can be either free or premium. 
 ---
 
