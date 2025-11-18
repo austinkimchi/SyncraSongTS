@@ -84,21 +84,21 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ pendingAccount 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div
-        className="w-full max-w-lg rounded-xl border p-8 shadow-2xl color bg-(--bg-color) border-(--border-color) color-[--text-color]"
+        className="w-full max-w-lg rounded-xl border p-8 shadow-2xl color bg-bg1 border-(--border-color) color-[--text-color]"
       >
-        <h2 className="text-2xl font-semibold mb-4">Create your SyncraSong account</h2>
-        <p className="mb-6 text-sm leading-6 text-(--text-color-secondary)!">
+        <h2 className="text-2xl font-semibold mb-4 text-secondary">Create your SyncraSong account</h2>
+        <p className="mb-6 text-sm leading-6 text-secondary">
           We couldn&apos;t find an existing SyncraSong account for your {providerName} login. Choose a username
           below to finish setting up your account.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium">Username</span>
+            <span className="font-medium text-secondary">Username</span>
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              className="rounded-md border p-3 text-base outline-none bg-(--input-bg) border-(--border-color) color-[--text-color] focus:border-(--accent-color) transition"
+              className="rounded-md border p-3 text-base outline-none bg-(--input-bg) border-(--accent-color) color-[--text-color] focus:border-(--accent-color) transition text-secondary"
               placeholder="your_username"
               autoFocus
             />
@@ -113,7 +113,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ pendingAccount 
           <button
             type="submit"
             disabled={loading}
-            className="rounded-md p-3 text-base font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60 bg-(--accent-color)!"
+            className="rounded-md p-3 text-base font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60 bg-bg5/40"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>

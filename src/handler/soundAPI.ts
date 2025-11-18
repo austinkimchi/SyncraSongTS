@@ -66,7 +66,7 @@ class SoundCloudAuthService implements PlatformAuthService {
         }
 
         if (data.info === "complete-signup" && data.state) {
-            storePendingAccount({ provider: Platform.SPOTIFY, state: data.state });
+            storePendingAccount({ provider: Platform.SOUNDCLOUD, state: data.state });
         } else if (data.info === "signin" || data.info === "connected") {
             clearPendingAccount();
             window.dispatchEvent(new Event("auth-changed"));

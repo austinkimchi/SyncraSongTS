@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 // Components
 import Connect from "./components/Connect";
 import About from "./components/About";
 import Link from "./components/Link";
 import Nav from "./components/Nav";
+import CreateAccountModal from "./components/CreateAccountModal";
 
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -13,12 +14,26 @@ import "./handler/callback";
 
 import { setNavigator } from "./handler/createNavigate";
 import Transfer from "./components/Transfer";
+import { getPendingAccount, subscribeToPendingAccount } from "./handler/pendingAccount";
 
 const App: React.FC = () => {
+  const [pendingAccount, setPendingAccount] = useState(getPendingAccount());
+
+  useEffect(() => {
+    const updatePendingAccount = () => setPendingAccount(getPendingAccount());
+
+    const unsubscribe = subscribeToPendingAccount(updatePendingAccount);
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   return (
     <Router>
       <Nav />
       <AnimatedRoutes />
+      {pendingAccount && <CreateAccountModal pendingAccount={pendingAccount} />}
     </Router>
   );
 };
