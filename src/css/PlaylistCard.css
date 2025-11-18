@@ -21,7 +21,6 @@
   color: black;
 }
 
-
 .playlist-status-badge {
   position: absolute;
   top: 8px;
@@ -32,7 +31,6 @@
   padding: 0.25rem 0.6rem;
 
 }
-
 .playlist-status-spinner {
   top: 8px;
   right: 1px;
@@ -58,7 +56,6 @@
   }
 }
 
-
 .playlist-status-badge--processing {
   color: #1d4ed8;
 }
@@ -81,10 +78,36 @@
   }
 }
 
-.spotify-gradient {
+/* .spotify-gradient {
   background: linear-gradient(45deg, #A8E8A2, rgba(255, 255, 255, 0.75));
 }
 
 .apple_music-gradient {
   background: linear-gradient(45deg, #FFD3A5, rgba(255, 255, 255, 0.75));
+}
+
+.soundcloud-gradient {
+  background: linear-gradient(45deg, #b1b1b1, rgba(255, 255, 255, 0.75));
+} */
+
+.spotify-gradient,
+.apple_music-gradient,
+.soundcloud-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+  background: var(--color-bg5);
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }

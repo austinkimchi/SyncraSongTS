@@ -3,7 +3,8 @@ import { Playlist } from "../types/playlist";
 import PlaceholderNoImage from "../assets/placeholders/300x300-noimage.png";
 import { useDrag, DragSourceMonitor } from "react-dnd";
 import { state } from "../types/status";
-import completeLogo from "../assets/images/synced_button.svg"
+import completeLogo from "../assets/images/synced_button.svg";
+import removeButton from "../assets/images/remove_button.svg";
 
 import "../css/PlaylistCard.css";
 
@@ -15,7 +16,6 @@ interface PlaylistComponentProps {
 
 const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   data: { id, name, image, trackCount, platform, status, description, isPublic, href },
-  onAdd,
   onRemove,
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
@@ -29,11 +29,14 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
   const handleClick = () => {
     if (status === state.QUEUED && onRemove) {
       onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
-      return;
     }
+  };
 
-    if (status !== state.QUEUED && onAdd) {
-      onAdd({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
+  const handleRemoveClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (onRemove) {
+      onRemove({ id, name, image, trackCount, description, isPublic, href, platform, owner: "", status });
     }
   };
 
@@ -44,7 +47,17 @@ const PlaylistCard: React.FC<PlaylistComponentProps> = ({
       onClick={handleClick} // On click will opened detailed view, future feature
       data-testid={`playlist-card-${id}`}
     >
-      {(status === state.PROCESSING || status === state.QUEUED) && (
+      {status === state.QUEUED && (
+        <button
+          type="button"
+          className="playlist-status-badge playlist-status-badge--remove"
+          onClick={handleRemoveClick}
+          aria-label={`Remove ${name} from transfer queue`}
+        >
+          <img src={removeButton} alt="Remove playlist from queue" className="w-[25px] h-[25px]" />
+        </button>
+      )}
+      {status === state.PROCESSING && (
         <div className="playlist-status-badge playlist-status-badge--processing">
           <span className="playlist-status-spinner" aria-hidden="true" />
         </div>

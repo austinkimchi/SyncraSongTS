@@ -38,7 +38,7 @@ const AnimatedRoutes: React.FC = () => {
 
   const isTransferRoute = location.pathname.startsWith("/transfer");
   return (
-    <AnimatePresence mode="popLayout">
+    <AnimatePresence mode="popLayout" initial={true}>
       {isTransferRoute ? <></> : <Connect />}
       <motion.div
         key={location.pathname}

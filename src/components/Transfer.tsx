@@ -1,11 +1,18 @@
 import React from "react";
+import { useDrop } from "react-dnd";
+import { useNavigate } from "react-router-dom";
+import arrowBidirection from "../assets/images/arrow1.svg";
 import arrowRight from "../assets/images/arrow_right.svg";
+import refreshIcon from "../assets/icons/refresh.svg";
+import { waitForProviders } from "../auth/providerStorage";
 import PlaylistCollection from "./PlaylistCollection";
-import { DEMO_PLAYLISTS_APPLE, DEMO_PLAYLISTS_SPOTIFY, DEMO_PLAYLISTS_SOUNDCLOUD } from "../data/demoPlaylists";
+import { commitPendingPlaylists } from "../handler/playlistTransfer";
+import { usePlatformClient } from "../hooks/usePlatformClient";
+import { loadTransferPlatforms, storeTransferPlatforms, TransferPlatforms } from "../hooks/useTransferPlatforms";
 import Platform, { getPlatformDisplayName, getPlatformLogo } from "../types/platform";
 import { Playlist } from "../types/playlist";
 import { state } from "../types/status";
-import { loadTransferPlatforms, storeTransferPlatforms, TransferPlatforms } from "../hooks/useTransferPlatforms";
+import PlaylistCard from "./PlaylistCard";
 
 const DEFAULT_PLATFORMS: TransferPlatforms = {
     source: Platform.APPLE_MUSIC,
@@ -13,12 +20,19 @@ const DEFAULT_PLATFORMS: TransferPlatforms = {
 };
 
 const platformAccentBackground: Record<Platform, string> = {
-    [Platform.APPLE_MUSIC]: "bg-[#EAFBD3]",
-    [Platform.SPOTIFY]: "bg-[#E7F0FF]",
-    [Platform.SOUNDCLOUD]: "bg-bg5/60",
+    [Platform.APPLE_MUSIC]: "bg-spotify",
+    [Platform.SPOTIFY]: "bg-spotify",
+    [Platform.SOUNDCLOUD]: "bg-spotify",
 };
 
+const normalisePlaylists = (playlists: Playlist[]): Playlist[] =>
+    playlists.map((playlist) => ({
+        ...playlist,
+        status: playlist.status ?? state.NONE,
+    }));
+
 const Transfer: React.FC = () => {
+    const navigate = useNavigate();
     const [platforms, setPlatforms] = React.useState<TransferPlatforms>(() =>
         loadTransferPlatforms(DEFAULT_PLATFORMS)
     );
@@ -27,18 +41,82 @@ const Transfer: React.FC = () => {
         setPlatforms(loadTransferPlatforms(DEFAULT_PLATFORMS));
     }, []);
 
-    const libraries = React.useMemo(
-        () => ({
-            [Platform.APPLE_MUSIC]: DEMO_PLAYLISTS_APPLE,
-            [Platform.SPOTIFY]: DEMO_PLAYLISTS_SPOTIFY,
-            [Platform.SOUNDCLOUD]: DEMO_PLAYLISTS_SOUNDCLOUD,
-        }),
-        []
+    const sourceClient = usePlatformClient(platforms.source);
+    const targetClient = usePlatformClient(platforms.target);
+
+    const [storedProviders, setStoredProviders] = React.useState<Platform[]>([]);
+    const [libraryPlaylists, setLibraryPlaylists] =
+        React.useState<Record<Platform, Playlist[]>>(
+            {} as Record<Platform, Playlist[]>
+        );
+    const [loadingPlatforms, setLoadingPlatforms] =
+        React.useState<Record<Platform, boolean>>(
+            {} as Record<Platform, boolean>
+        );
+    const [pendingPlaylists, setPendingPlaylists] = React.useState<Playlist[]>([]);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+    React.useEffect(()=>{
+         if (pendingPlaylists.length <= 0) { setArrowDirectionClass(""); }
+    }, [pendingPlaylists]); // reset arrow direction when no pending playlists
+
+    React.useEffect(() => {
+        let isMounted = true;
+
+        (async () => {
+            const providers = await waitForProviders();
+            if (isMounted) {
+                setStoredProviders(providers);
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const fetchPlaylists = React.useCallback(
+        async (platform: Platform, client: ReturnType<typeof usePlatformClient>, fetch: boolean = false) => {
+            if (!storedProviders.includes(platform)) {
+                setLibraryPlaylists((current) => ({ ...current, [platform]: [] }));
+                return;
+            }
+
+            setLoadingPlatforms((current) => ({ ...current, [platform]: true }));
+
+            try {
+                const { playlists } = await client.getUserPlaylists({ fetch });
+                setLibraryPlaylists((current) => ({
+                    ...current,
+                    [platform]: normalisePlaylists(playlists),
+                }));
+            } catch (error) {
+                console.error(`Failed to load playlists for ${platform}`, error);
+                setLibraryPlaylists((current) => ({ ...current, [platform]: [] }));
+            } finally {
+                setLoadingPlatforms((current) => ({
+                    ...current,
+                    [platform]: false,
+                }));
+            }
+        },
+        [storedProviders]
     );
 
-    const [pendingPlaylists, setPendingPlaylists] = React.useState<Playlist[]>([]);
+    React.useEffect(() => {
+        fetchPlaylists(platforms.source, sourceClient);
+        if (platforms.target !== platforms.source) {
+            fetchPlaylists(platforms.target, targetClient);
+        }
+    }, [fetchPlaylists, platforms.source, platforms.target, sourceClient, targetClient]);
 
+    // Allow adding from either platform now
     const addPendingPlaylist = React.useCallback((playlist: Playlist) => {
+        // set arrow direction based on source and target
+        if (playlist.platform !== platforms.source)
+            setArrowDirectionClass("rotate-180");
+        else setArrowDirectionClass("rotate-0");
+
         setPendingPlaylists((current) => {
             if (current.some((pl) => pl.id === playlist.id)) return current;
 
@@ -48,82 +126,178 @@ const Transfer: React.FC = () => {
     }, []);
 
     const removePendingPlaylist = React.useCallback((playlist: Playlist) => {
-        setPendingPlaylists((current) => current.filter((pl) => pl.id !== playlist.id));
+        setPendingPlaylists((current) =>
+            current.filter((pl) => pl.id !== playlist.id)
+        );
     }, []);
 
+    // Allow "Select All" from either platform
     const selectAllFromPlatform = (platform: Platform) => {
-        const candidates = libraries[platform] ?? [];
-        candidates.forEach((pl) => addPendingPlaylist(pl));
+        const candidates = libraryPlaylists[platform] ?? [];
+        candidates.forEach((pl) => {
+            pl.platform = platform;
+            addPendingPlaylist(pl);
+        });
     };
 
-    const onCommit = () => {
+    const onCommit = React.useCallback(async () => {
+        if (pendingPlaylists.length === 0) return;
+
+        const toCommit = pendingPlaylists;
+        setIsSubmitting(true);
         setPendingPlaylists((current) =>
             current.map((pl) => ({
                 ...pl,
                 status: state.PROCESSING,
             }))
         );
+
+        try {
+            const target_platform = pendingPlaylists[0].platform === platforms.source ? platforms.target : platforms.source;
+            const response = await commitPendingPlaylists(
+                toCommit,
+                target_platform
+            );
+
+            if (response?.failed_ids?.length) {
+                setPendingPlaylists((current) =>
+                    current.map((pl) =>
+                        response.failed_ids.includes(pl.id)
+                            ? { ...pl, status: state.ERROR }
+                            : pl
+                    )
+                );
+            }
+        } catch (error) {
+            console.error("Failed to commit pending playlists", error);
+            setPendingPlaylists((current) =>
+                current.map((pl) => ({
+                    ...pl,
+                    status: state.ERROR,
+                }))
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [pendingPlaylists, platforms.target]);
+
+    const onCancelAll = () => {
+        setIsSubmitting(false);
+        setPendingPlaylists([]);
     };
 
-    const onCancelAll = () => setPendingPlaylists([]);
-
-    const arrowDirectionClass =
-        platforms.source === DEFAULT_PLATFORMS.target && platforms.target === DEFAULT_PLATFORMS.source
-            ? "rotate-180"
-            : "";
+    // Always show arrow from left to right; source name is on the left, target name on the right
+    const [arrowDirectionClass, setArrowDirectionClass] = React.useState("");
 
     const pendingTitle =
         pendingPlaylists.length > 0
-            ? `${pendingPlaylists.length} playlist ${pendingPlaylists.length === 1 ? "" : "S"} selected`
-            : "Select or Drag playlists up here to transfer...";
+            ? `${pendingPlaylists.length} playlist${pendingPlaylists.length === 1 ? "" : "s"
+            } selected`
+            : "Drag playlists from either platform to the transfer area";
 
-    const buttonsDisabled = pendingPlaylists.length === 0;
+    const buttonsDisabled = pendingPlaylists.length === 0 || isSubmitting;
 
     React.useEffect(() => {
         storeTransferPlatforms(platforms);
     }, [platforms]);
 
-    const renderPlatformColumn = (platform: Platform) => (
-        <div
-            className={`rounded-md ${platformAccentBackground[platform] || "bg-bg5/30"} px-4 py-5 md:px-6 md:py-8 flex flex-col gap-4`}
-        >
-            <header className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-3">
-                    <div className="rounded-full flex items-center justify-center">
-                        <img src={getPlatformLogo(platform)} alt={`${platform} logo`} className="w-10 rounded-full" />
-                    </div>
-                    <p className="text-xl sm:text-2xl font-bold text-thirdary font-extrabold">
-                        {getPlatformDisplayName(platform)}
-                    </p>
-                </div>
-                <button
-                    className="text-secondary bg-bg3 font-bold w-[180px] h-[40px]"
-                    onClick={() => selectAllFromPlatform(platform)}
-                >
-                    Select All
-                </button>
-            </header>
+    type DropCollect = {
+        isOver: boolean;
+        canDrop: boolean;
+    };
 
-            <PlaylistCollection
-                playlists={libraries[platform] ?? []}
-                platform={platform}
-                onAdd={addPendingPlaylist}
-            />
-        </div>
+    // Drop zone accepts playlists from either provider
+    const [{ isOver, canDrop }, drop] = useDrop<Playlist, void, DropCollect>(
+        () => ({
+            accept: ["DRAG_FROM_PROVIDER"],
+            canDrop: () => true,
+            drop: (pl) => addPendingPlaylist(pl),
+            collect: (monitor) => ({
+                isOver: monitor.isOver(),
+                canDrop: monitor.canDrop(),
+            }),
+        }),
+        [addPendingPlaylist]
     );
+
+    const renderPlatformColumn = (platform: Platform) => {
+        const playlists = libraryPlaylists[platform] ?? [];
+        const isLoading = loadingPlatforms[platform];
+        const isConnected = storedProviders.includes(platform);
+        const multiplier = pendingPlaylists.length > 0 ? 2 : 1;
+
+        return (
+            <div
+                className={`rounded-md ${platformAccentBackground[platform] || "bg-bg5/30"
+                    } px-4 py-5 md:px-6 md:py-8 flex flex-col gap-4`}
+            >
+                <header className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-full flex items-center justify-center">
+                            <img
+                                src={getPlatformLogo(platform)}
+                                alt={`${platform} logo`}
+                                className="w-10 rounded-full"
+                            />
+                        </div>
+                        <p className="text-lg md:text-2xl font-bold text-thirdary font-extrabold">
+                            {getPlatformDisplayName(platform)}
+                        </p>
+                        <img src={refreshIcon} alt="refresh" className="w-6 h-6 cursor-pointer" onClick={() => fetchPlaylists(platform, platform === platforms.source ? sourceClient : targetClient, true)} />
+                    </div>
+
+
+                    <button
+                        className={`text-secondary bg-bg3 font-bold w-[180px] h-[40px] ${playlists.length === 0
+                            ? "opacity-40 cursor-not-allowed"
+                            : ""
+                            }`}
+                        onClick={() => selectAllFromPlatform(platform)}
+                        disabled={playlists.length === 0}
+                    >
+                        Select All
+                    </button>
+
+                </header>
+
+                {!isConnected && (
+                    <p className="text-sm text-secondary/70">
+                        Sign in to load playlists for this platform.
+                    </p>
+                )}
+
+                {isLoading ? (
+                    <p className="text-black">Loading playlists…</p>
+                ) : (
+                    <div className={`grid display-grid grid-cols-${2 * multiplier} md:grid-cols-${2 * multiplier} lg:grid-cols-${3 * multiplier} 2xl:grid-cols-${4 * multiplier} 3xl:grid-cols-${5 * multiplier} gap-4`}>
+                        <PlaylistCollection
+                            playlists={playlists}
+                            platform={platform}
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
+
 
     return (
         <>
             {/* Notch absolute container for the components of transfer */}
-            <div className="bg-bg1 px-6 py-2 lg:py-4 drop-shadow rounded-[50px] gap-3 justify-center mx-auto text-center w-[30%] absolute left-[50%] top-6 lg:top-3 justify-items-center -translate-x-[50%] hidden lg:flex">
+            <div
+                className="bg-bg1 px-6 py-4 drop-shadow rounded-[50px] gap-1 lg:gap-3 justify-center mx-auto text-center w-[30%] absolute left-[50%] top-3 justify-items-center -translate-x-[50%] hidden md:flex cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/link")}
+            >
                 <p className="text-sm md:text-base w-30 bg-bg5/30 rounded-lg py-1 lg:py-2 text-secondary md:w-40 md:px-3 text-nowrap">
                     {getPlatformDisplayName(platforms.source)}
                 </p>
                 <img
-                    src={arrowRight}
+                    src={arrowDirectionClass ? arrowRight : arrowBidirection}
                     alt="arrow"
                     className={`cursor-pointer ${arrowDirectionClass}`}
-                    width={25}
+                    width={arrowDirectionClass ? 25 : 30}
                 />
                 <p className="text-sm md:text-base w-30 bg-bg5/30 rounded-lg py-1 lg:py-2 text-secondary md:w-40 md:px-3 text-nowrap">
                     {getPlatformDisplayName(platforms.target)}
@@ -131,9 +305,16 @@ const Transfer: React.FC = () => {
             </div>
 
             <div className={`flex flex-col mb-12 mx-2 md:mx-16 gap-6 2xl:mx-32`}>
-                <section className={`flex flex-col gap-5 bg-bg1 rounded-md justify-between py-5 drop-shadow px-[3%] md:py-8`}>
+
+                <section
+                    ref={drop}
+                    className={`flex flex-col gap-5 bg-bg1 rounded-md justify-between py-5 drop-shadow px-[3%] md:py-8
+                    ${pendingPlaylists.length > 0 ? "justify-start" : ""}
+                    ${isOver && canDrop ? "outline-bg3 outline-4" : "border-bg5/30"}
+                 `}
+                >
                     <div className="flex flex-col md:flex-row gap-3 justify-between md:items-center">
-                        <p className="text-secondary text-lg text-pretty font-extrabold px-1 md:px-0 md:text-2xl lg:text-nowrap">
+                        <p className="text-secondary text-lg text-pretty font-extrabold px-1 md:px-0 md:text-2xl xl:text-nowrap">
                             {pendingTitle}
                         </p>
                         <div className="flex gap-2 font-bold self-start md:self-auto">
@@ -147,26 +328,45 @@ const Transfer: React.FC = () => {
                             <button
                                 className={`max-w-[200px] min-w-[170px] h-[40px] text-nowrap bg-bg5 text-bg1 justify-center md:justify-self-end scale-95 justify-self-center md:scale-none ${buttonsDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                 onClick={onCancelAll}
-                                disabled={buttonsDisabled}
+                                disabled={pendingPlaylists.length === 0}
                             >
                                 Cancel All
                             </button>
                         </div>
                     </div>
 
-                    <div className={`bg-[#2b2d33] rounded-3xl border border-bg5/30 px-4 md:px-6 py-6 overflow-hidden ${pendingPlaylists.length === 0 ? "hidden" : ""}`}>
-                        <PlaylistCollection
-                            playlists={pendingPlaylists}
-                            platform={pendingPlaylists[0]?.platform}
-                            onRemove={removePendingPlaylist}
-                        />
+                    <div
+                        className={`rounded-3xl py-6 overflow-hidden min-h-[220px] flex items-center ${pendingPlaylists.length > 0 ? "justify-start" : "hidden"}`}
+                    >
+                        <div className={`grid display-grid grid-cols-4 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8 3xl:grid-cols-10 gap-4`}>
+                            {pendingPlaylists.length === 0 ? (
+                                <></>
+                            ) : (
+                                pendingPlaylists.map((pl) =>
+                                    <PlaylistCard
+                                        key={pl.id}
+                                        data={{ ...pl, platform: pl.platform }}
+                                        onRemove={removePendingPlaylist}
+                                    />)
+                            )
+                            }
+                        </div>
                     </div>
                 </section>
 
-                <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 pb-6">
-                    {renderPlatformColumn(platforms.source)}
-                    {renderPlatformColumn(platforms.target)}
+
+                <section className={`grid grid-cols-1 gap-6
+                ${pendingPlaylists.length <= 0 ? "md:grid-cols-2"
+                        : "md:grid-cols-1"}
+                    `}>
+                    {pendingPlaylists.length <= 0 ? renderPlatformColumn(platforms.source)
+                        : pendingPlaylists[0].platform == platforms.source
+                            ? renderPlatformColumn(platforms.source) : null}
+                    {pendingPlaylists.length <= 0 ? renderPlatformColumn(platforms.target)
+                        : pendingPlaylists[0].platform == platforms.target
+                            ? renderPlatformColumn(platforms.target) : null}
                 </section>
+
             </div>
         </>
     );

@@ -10,6 +10,9 @@
   --color-bg4: #315299;
   --color-bg5: #D9D9D9;
   --color-accent: #4a7deb;
+  --color-spotify: #EAFBD3;
+  --color-applemusic: #ffc1ae50;
+  --color-soundcloud: #D9D9D999;
 
   /* change default rounded edge */
   --radius-md: 15px;

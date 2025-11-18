@@ -9,16 +9,16 @@ const About: React.FC = () => {
             </section >
 
             {/* Third section; Highlights the features */}
-            < section className="flex justify-evenly bg-gradient-to-r from-bg3 to-bg4 px-[10%] text-lg/[20px] py-18 md:text-center text-secondary font-extrabold flex-col gap-10 md:gap-6 md:flex-row md:text-lg/[28px] md:items-center" >
-                <p className="max-w-[260px]">Transfer playlists between platforms, even the whole batch in on go!</p>
+            <section className="flex justify-evenly bg-gradient-to-r from-bg3 to-bg4 px-4 md:px-24 text-lg/[20px] py-18 md:text-center text-secondary font-extrabold flex-col gap-10 md:gap-6 md:flex-row md:text-lg/[28px] md:items-center leading-none text-balance" >
+                <p className="w-200 max-w-[260px]">Transfer playlists between platforms, even the whole batch in on go!</p>
 
-                <p className="max-w-[300px]">Sync Playlists up-to-date with <br className="hidden md:inline" />your latest songs additions, even <br className="hidden md:inline" />after transferring cross-platforms.</p>
+                <p className="w-300 max-w-[300px]">Sync Playlists up-to-date with <br className="hidden lg:inline" />your latest songs additions, even <br className="hidden md:inline" />after transferring cross-platforms.</p>
 
-                <p className="max-w-[260px]">Share playlists with friends across platforms with personalized links.</p>
+                <p className="w-200 max-w-[260px]">Share playlists with friends across platforms with personalized links.</p>
             </section >
             {/* Fourth section; Footer */}
             < section className="flex flex-col bg-bg1" >
-                <div className={`flex flex-col text-secondary font-extrabold text-lg/[28px] py-[90px] px-16 w-fit md:max-w-[20%]`}>
+                <div className={`flex flex-col text-secondary font-extrabold text-lg/[28px] py-[90px] mx-4 md:mx-16 2xl:mx-32 w-fit md:max-w-[20%]`}>
                     <div>
                         <a className="cursor-pointer">About</a>
                     </div>
