@@ -22,6 +22,10 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ pendingAccount 
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
+  const handleClose = () => {
+    clearPendingAccount();
+  };
+
   const providerName = useMemo(
     () => getProviderName(pendingAccount.provider),
     [pendingAccount.provider],
@@ -84,8 +88,16 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ pendingAccount 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div
-        className="w-full max-w-lg rounded-xl border p-8 shadow-2xl color bg-bg1 border-(--border-color) color-[--text-color]"
+        className="w-full max-w-lg rounded-xl border p-8 shadow-2xl color bg-bg1 border-(--border-color) color-[--text-color] relative"
       >
+        <button
+          type="button"
+          aria-label="Close create account dialog"
+          onClick={handleClose}
+          className="absolute right-4 top-4 text-secondary hover:text-white transition"
+        >
+          ×
+        </button>
         <h2 className="text-2xl font-semibold mb-4 text-secondary">Create your SyncraSong account</h2>
         <p className="mb-6 text-sm leading-6 text-secondary">
           We couldn&apos;t find an existing SyncraSong account for your {providerName} login. Choose a username

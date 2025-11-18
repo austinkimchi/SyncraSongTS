@@ -1,6 +1,10 @@
 import React from "react";
 import Platform, { getPlatformDisplayName, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
-import { waitForProviders } from "../auth/providerStorage";
+import {
+    getStoredProviders,
+    providersUpdatedEventName,
+    waitForProviders,
+} from "../auth/providerStorage";
 
 const custom_order: Platform[] = [
     Platform.APPLE_MUSIC,
@@ -24,14 +28,31 @@ const Link: React.FC = () => {
         }
     })
 
-    const [storedProviders, setStoredProviders] = React.useState<Platform[]>([]);
+    const [storedProviders, setStoredProviders] = React.useState<Platform[]>(() => getStoredProviders());
+
+    const refreshProviders = React.useCallback(async () => {
+        const providers = await waitForProviders();
+        setStoredProviders(providers);
+    }, []);
+
     React.useEffect(() => {
-        (async () => {
-            const providers = await waitForProviders();
-            if (providers.length !== storedProviders.length)
-                setStoredProviders(providers);
-        })();
-    }, [storedProviders]);
+        const handleProvidersUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<{ providers: Platform[] }>;
+            if (customEvent.detail?.providers) {
+                setStoredProviders(customEvent.detail.providers);
+            }
+        };
+
+        refreshProviders();
+
+        window.addEventListener("auth-changed", refreshProviders);
+        window.addEventListener(providersUpdatedEventName, handleProvidersUpdated);
+
+        return () => {
+            window.removeEventListener("auth-changed", refreshProviders);
+            window.removeEventListener(providersUpdatedEventName, handleProvidersUpdated);
+        };
+    }, [refreshProviders]);
 
     return (
         <div className={`flex flex-col gap-2 mx-2 md:mx-16 2xl:mx-32`}>
