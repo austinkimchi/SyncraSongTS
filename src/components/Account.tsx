@@ -10,16 +10,15 @@ import {
   ListItemText,
   Divider
 } from "@mui/material";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AccountCirclePlaceholder from "../assets/placeholders/placeholder1.svg";
 import LogoutIcon from "@mui/icons-material/Logout";
-import SettingsIcon from "@mui/icons-material/Settings";
 import BrightnessMediumIcon from "@mui/icons-material/BrightnessMedium";
 import Platform, { getPlatformDisplayName, getPlatformInfo, getPlatformLogo, getPlatformOAuthFunction } from "../types/platform";
 
 import { API_FULL_URL } from "../config";
 import { spotifyAuthService } from "../handler/spotifyAPI";
-import { clearStoredProviders, setStoredProviders } from "../auth/providerStorage";
+import { clearStoredProviders } from "../auth/providerStorage";
+import { useNavigate } from "react-router-dom";
 
 const buttonTheme = createTheme({
   typography: { fontFamily: "Fort" },
@@ -99,6 +98,8 @@ const Account: React.FC<AccountProps> = ({ }) => {
   const open = Boolean(anchorEl);
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
+
+  const navigate = useNavigate();
 
   // OAuth start: redirect to backend, which will redirect to provider
   const startOAuth = (provider: Platform) => {
@@ -215,7 +216,8 @@ const Account: React.FC<AccountProps> = ({ }) => {
     sessionStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
     // Soft refresh to reset any protected views
-    // setTimeout(() => window.location.reload(), 150);
+    navigate("/");
+    setTimeout(() => window.location.reload(), 150);
   };
 
   // Menu content when NOT logged in: show Login with <providers>
